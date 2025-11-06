@@ -1,0 +1,30 @@
+# Gradle Files
+.gradle/
+build/
+out/
+**/build/
+**/out/
+gradle-app.setting
+
+# Local configuration files
+local.properties
+*.iml
+
+# IDE files
+.idea/
+*.ipr
+*.iws
+*.class
+*.jar
+*.war
+*.ear
+
+# OS-Generated files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Other
+*.hprof
