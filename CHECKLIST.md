@@ -2,12 +2,12 @@
 
 - [x] Initialize Project
 - [x] Configure `build.gradle.kts` with dependencies
-- [ ] Set up testing framework
+- [x] Set up testing framework
 
 # Core
 
-- [ ] Create `Repository.kt` class
-- [ ] Implement `.notevc` directory initialization
+- [x] Create `Repository.kt` class
+- [x] Implement `.notevc` directory initialization
 - [ ] Create `ObjectStore.kt` for content storage 
 - [ ] Implement content hashing `HashUtils.kt`
 - [ ] Create `NoteSnapshot` data class
