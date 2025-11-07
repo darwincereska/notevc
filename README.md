@@ -1,4 +1,4 @@
-# ![logo.png](images/png/Color40x50.png) NoteVC: Version Control for Markdown
+# ![logo.png](./images/png/Color40X50.png) NoteVC: Version Control for Markdown
 
 
 # Repository management
