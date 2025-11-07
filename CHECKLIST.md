@@ -8,36 +8,36 @@
 
 - [x] Create `Repository.kt` class
 - [x] Implement `.notevc` directory initialization
-- [ ] Create `ObjectStore.kt` for content storage 
-- [ ] Implement content hashing `HashUtils.kt`
-- [ ] Create `NoteSnapshot` data class
-- [ ] Implement `Timeline.kt` for version tracking
-- [ ] Add `RepoMetadata` and configuration
+- [x] Create `ObjectStore.kt` for content storage 
+- [x] Implement content hashing `HashUtils.kt`
+- [x] Create `NoteSnapshot` data class
+- [x] Implement `Timeline.kt` for version tracking
+- [x] Add `RepoMetadata` and configuration
 
 # File Operations
 
-- [ ] Implement markdown file scanning
-- [ ] Create file change detection logic
-- [ ] Add file content reading/writing utilities
-- [ ] Implement path resolution and validation
-- [ ] Add file timestamp tracking
+- [x] Implement markdown file scanning
+- [x] Create file change detection logic
+- [x] Add file content reading/writing utilities
+- [x] Implement path resolution and validation
+- [x] Add file timestamp tracking
 - [ ] Create backup and restore mechanisms
 
 # Core Commands
 
 ## Init Command
 
-- [ ] `notevc init` - Initialize repository
-- [ ] Create `.notevc` directory structure
-- [ ] Generate initial metadata file
-- [ ] Handle existing repository detection
+- [x] `notevc init` - Initialize repository
+- [x] Create `.notevc` directory structure
+- [x] Generate initial metadata file
+- [x] Handle existing repository detection
 
 ## Status Command
 
-- [ ] `notevc status` - Show file changes
-- [ ] Compare current files with last snapshot
-- [ ] Display added/modified/deleted files
-- [ ] Show clean working directory message
+- [x] `notevc status` - Show file changes
+- [x] Compare current files with last snapshot
+- [x] Display added/modified/deleted files
+- [x] Show clean working directory message
 
 ## Commit command
 

@@ -12,6 +12,7 @@ import java.time.Instant
 
 class Repository private constructor(private val rootPath: Path) {
     private val notevcDir = rootPath.resolve(NOTEVC_DIR)
+    private val objectStore = ObjectStore(notevcDir.resolve("objects"))
     val path: Path get() = rootPath
     val isInitialized: Boolean get() = notevcDir.exists()
 

@@ -12,7 +12,8 @@ class InitCommand {
 
             repo.init().fold(
                 onSuccess = {
-                    Result.success("Initialized notevc repository in ${repo.path.toAbsolutePath()}")
+                    val absolutePath = repo.path.toAbsolutePath().toString()
+                    Result.success("Initialized notevc repository in $absolutePath")
                 },
                 onFailure = {
                     error -> Result.failure(error)

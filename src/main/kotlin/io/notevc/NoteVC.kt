@@ -6,7 +6,7 @@ import io.notevc.commands.*
 fun main(args: Array<String>) {
     // Args logic
     when (args.firstOrNull()) {
-        "init" -> {
+        "init", "i" -> {
             val initCommand = InitCommand()
             val result = initCommand.execute(args.getOrNull(1))
 
@@ -20,12 +20,22 @@ fun main(args: Array<String>) {
             println("Not implemented yet")
         }
 
-        "status" -> {
-            println("Not implemented yet")
+        "status", "st" -> {
+            val statusCommand = StatusCommand()
+            val result = statusCommand.execute()
+
+            result.fold(
+                onSuccess = { output -> println(output) },
+                onFailure = { error -> println("Error: ${error.message}") }
+            )
         }
 
         "version", "--version", "-v" -> {
             println("notevc version ${Repository.VERSION}")
+        }
+        
+        else -> {
+            println("Usage: notevc init|commit|status|version")
         }
     }
 }
