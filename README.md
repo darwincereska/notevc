@@ -1,21 +1,75 @@
-# NoteVC: Version Control for Markdown
+# ![logo.png](images/png/Color40x50.png) NoteVC: Version Control for Markdown
+
+
 # Repository management
-notevc init [path]                    # Initialize notevc repo
-notevc status                         # Show changed files
-notevc commit "message"               # Create snapshot
-notevc log [--since=time]            # Show commit history
+
+Initialize notevc repo:
+```bash
+notevc init [path]
+```
+
+Show changed files:
+```bash
+notevc status
+```
+
+Create snapshot:
+```bash
+notevc commit [--file <file>] "message"
+```
+
+Show commit history:
+```bash
+notevc log [--since=time]
+```
 
 # Viewing changes
-notevc diff [file]                    # Show changes since last commit
-notevc diff HEAD~1 [file]            # Compare with previous commit
-notevc show <commit-hash>             # Show specific commit
+
+Show changes since last commit:
+```bash
+notevc diff [file]
+```
+
+Compare with previous commit:
+```bash
+notevc diff HEAD~1 [file]
+```
+
+Show specific commit:
+```bash
+notevc show <commit-hash>
+```
 
 # Restoration
-notevc restore <commit-hash> [file]   # Restore to specific version
-notevc checkout <commit-hash>         # Restore entire repo state
+
+Restore to specific version:
+```bash
+notevc restore <commit-hash> [file]
+```
+
+Restore to specific block:
+```bash
+notevc restore --block <commit-hash> [file]
+```
+
+Restore entire repo state:
+```bash
+notevc checkout <commit-hash>
+```
 
 # Utilities
-notevc clean                          # Remove old snapshots
-notevc gc                            # Garbage collect unused objects
-notevc config                        # Show/set configuration
 
+Remove old snapshots:
+```bash
+notevc clean
+```
+
+Garbage collect unused objects:
+```bash
+notevc gc
+```
+
+Show/set configuration:
+```bash
+notevc config
+```

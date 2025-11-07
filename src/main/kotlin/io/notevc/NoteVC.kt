@@ -17,7 +17,14 @@ fun main(args: Array<String>) {
         }
 
         "commit" -> {
-            println("Not implemented yet")
+            val commitArgs = args.drop(1)
+            val commitCommand = CommitCommand()
+            val result = commitCommand.execute(commitArgs)
+
+            result.fold(
+                onSuccess = { output -> println(output) },
+                onFailure = { error -> println("Error: ${error.message}") }
+            )
         }
 
         "status", "st" -> {

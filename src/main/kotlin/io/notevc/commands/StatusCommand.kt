@@ -110,7 +110,7 @@ class StatusCommand {
         grouped[FileStatusType.MODIFIED]?.let { modifiedFiles -> 
             output.appendLine("Modified files:")
             modifiedFiles.forEach { fileStatus -> 
-                output.appendLine(" ${fileStatus.path}")
+                output.appendLine("― ${fileStatus.path}")
                 fileStatus.blockChanges?.forEach { change -> 
                     val symbol = when (change.type) {
                         BlockChangeType.MODIFIED -> "M"

@@ -41,11 +41,11 @@
 
 ## Commit command
 
-- [ ] `notevc commit "message"` - Create snapshot
-- [ ] Validate commit message exists
-- [ ] Store changed file contents
-- [ ] Create snapshot with metadata
-- [ ] Update repository head pointer
+- [x] `notevc commit "message"` - Create snapshot
+- [x] Validate commit message exists
+- [x] Store changed file contents
+- [x] Create snapshot with metadata
+- [x] Update repository head pointer
 
 ## Log Command
 
@@ -111,3 +111,4 @@
 - [ ] File watching for auto-commits
 - [ ] Export/import functionality
 - [ ] NeoVim Plugin
+

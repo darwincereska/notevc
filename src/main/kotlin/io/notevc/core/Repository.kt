@@ -93,7 +93,17 @@ class Repository private constructor(private val rootPath: Path) {
 data class RepoMetadata(
     val version: String,
     val created: String,
-    var head: String?
+    var head: String?,
+    val config: RepoConfig = RepoConfig(),
+    val lastCommit: CommitInfo? = null
+)
+
+@Serializable
+data class CommitInfo(
+    val hash: String,
+    val message: String,
+    val timestamp: String,
+    val author: String
 )
 
 @Serializable
@@ -101,4 +111,13 @@ data class RepoConfig(
     val autoCommit: Boolean = false,
     val compressionEnabled: Boolean = false,
     val maxSnapshots: Int = 100
+)
+
+@Serializable
+data class CommitEntry(
+    val hash: String,
+    val message: String,
+    val timestamp: String,
+    val author: String,
+    val parent: String? = null
 )
