@@ -1,0 +1,173 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux-x64
+            binary-name: notevc
+          - os: macos-13
+            platform: macos-x64
+            binary-name: notevc
+          - os: macos-14
+            platform: macos-arm64
+            binary-name: notevc
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup GraalVM
+      uses: graalvm/setup-graalvm@v1
+      with:
+        java-version: '24'
+        distribution: 'graalvm'
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Cache Gradle packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+
+    - name: Build native binary
+      run: ./gradlew clean nativeCompile
+
+    - name: Package binary
+      run: |
+        mkdir -p dist
+        cp build/native/nativeCompile/${{ matrix.binary-name }} dist/
+        cd dist
+        tar -czf notevc-${{ matrix.platform }}.tar.gz ${{ matrix.binary-name }}
+        
+        # Generate SHA256
+        if [[ "${{ runner.os }}" == "Linux" ]]; then
+          sha256sum notevc-${{ matrix.platform }}.tar.gz > notevc-${{ matrix.platform }}.tar.gz.sha256
+        else
+          shasum -a 256 notevc-${{ matrix.platform }}.tar.gz > notevc-${{ matrix.platform }}.tar.gz.sha256
+        fi
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: notevc-${{ matrix.platform }}
+        path: |
+          dist/notevc-${{ matrix.platform }}.tar.gz
+          dist/notevc-${{ matrix.platform }}.tar.gz.sha256
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: artifacts
+
+    - name: Prepare release assets
+      run: |
+        mkdir -p release-assets
+        find artifacts -name "*.tar.gz" -exec cp {} release-assets/ \;
+        find artifacts -name "*.sha256" -exec cp {} release-assets/ \;
+        ls -la release-assets/
+
+    - name: Extract version
+      id: version
+      run: |
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          echo "tag=v${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.version.outputs.tag }}
+        name: Release ${{ steps.version.outputs.version }}
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+        files: |
+          release-assets/notevc-linux-x64.tar.gz
+          release-assets/notevc-macos-x64.tar.gz
+          release-assets/notevc-macos-arm64.tar.gz
+          release-assets/notevc-linux-x64.tar.gz.sha256
+          release-assets/notevc-macos-x64.tar.gz.sha256
+          release-assets/notevc-macos-arm64.tar.gz.sha256
+        body: |
+          ## NoteVC ${{ steps.version.outputs.version }}
+          
+          Block-level version control for markdown notes with surgical restore precision.
+          
+          ### Installation
+          
+          **macOS (Homebrew):**
+          ```bash
+          brew install darwincereska/notevc/notevc
+          ```
+          
+          **Manual Installation:**
+          1. Download the appropriate binary for your platform
+          2. Extract: `tar -xzf notevc-<platform>.tar.gz`
+          3. Move to PATH: `sudo mv notevc /usr/local/bin/`
+          
+          ### Quick Start
+          ```bash
+          notevc init
+          notevc status
+          notevc commit "Your first commit"
+          notevc log
+          ```
+          
+          ### What's New
+          - Block-level version control for markdown files
+          - Time-based snapshot organization
+          - Surgical block restore by hash
+          - Colorized CLI output
+          - Front matter support
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Output release info
+      run: |
+        echo "Release created successfully!"
+        echo "Assets uploaded:"
+        ls -la release-assets/
+        echo ""
+        echo "SHA256 hashes for Homebrew formula:"
+        echo "Linux x64:   $(cat release-assets/notevc-linux-x64.tar.gz.sha256 | cut -d' ' -f1)"
+        echo "macOS x64:   $(cat release-assets/notevc-macos-x64.tar.gz.sha256 | cut -d' ' -f1)"
+        echo "macOS ARM64: $(cat release-assets/notevc-macos-arm64.tar.gz.sha256 | cut -d' ' -f1)"
+
