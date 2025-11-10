@@ -2,6 +2,7 @@ package io.notevc.commands
 
 import io.notevc.core.*
 import io.notevc.utils.FileUtils
+import io.notevc.utils.ColorUtils
 import io.notevc.core.Repository.Companion.NOTEVC_DIR
 import java.time.Instant
 
@@ -108,35 +109,35 @@ class StatusCommand {
 
         // Modified files
         grouped[FileStatusType.MODIFIED]?.let { modifiedFiles -> 
-            output.appendLine("Modified files:")
+            output.appendLine(ColorUtils.bold("Modified files:"))
             modifiedFiles.forEach { fileStatus -> 
-                output.appendLine("― ${fileStatus.path}")
+                output.appendLine("  ${ColorUtils.filename(fileStatus.path)}")
                 fileStatus.blockChanges?.forEach { change -> 
                     val symbol = when (change.type) {
-                        BlockChangeType.MODIFIED -> "M"
-                        BlockChangeType.ADDED -> "A"
-                        BlockChangeType.DELETED -> "D"
+                        BlockChangeType.MODIFIED -> ColorUtils.modified("M") 
+                        BlockChangeType.ADDED -> ColorUtils.added("+")
+                        BlockChangeType.DELETED -> ColorUtils.deleted("-")
                     }
                     val heading = change.heading.replace(Regex("^#+\\s*"), "").trim()
-                    output.appendLine("―― $symbol $heading")
+                    output.appendLine("    $symbol ${ColorUtils.heading(heading)}")
                 }
             }
         }
 
         // Untracked files
         grouped[FileStatusType.UNTRACKED]?.let { untrackedFiles -> 
-            output.appendLine("Untracked files:")
+            output.appendLine(ColorUtils.bold("Untracked files:"))
             untrackedFiles.forEach { fileStatus -> 
-                output.appendLine("―― ${fileStatus.path} (${fileStatus.blockCount} blocks)")
+                output.appendLine("  ${ColorUtils.untracked(fileStatus.path)} ${ColorUtils.dim("${fileStatus.blockCount} blocks)")}")
             }
             output.appendLine()
         }
 
         // Deleted files
         grouped[FileStatusType.DELETED]?.let { deletedFiles -> 
-            output.appendLine("Deleted files:")
+            output.appendLine(ColorUtils.bold("Deleted files:"))
             deletedFiles.forEach { fileStatus -> 
-                output.appendLine("―― ${fileStatus.path}")
+                output.appendLine("  ${ColorUtils.deleted(fileStatus.path)}")
             }
             output.appendLine()
         }

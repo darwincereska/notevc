@@ -2,6 +2,7 @@ package io.notevc
 
 import io.notevc.core.Repository
 import io.notevc.commands.*
+import io.notevc.utils.ColorUtils
 
 fun main(args: Array<String>) {
     // Args logic
@@ -12,7 +13,18 @@ fun main(args: Array<String>) {
 
             result.fold(
                 onSuccess = { message -> println(message) },
-                onFailure = { error -> println("Error: ${error.message}") }
+                onFailure = { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
+            )
+        }
+
+        "log" -> {
+            val logArgs = args.drop(1)
+            val logCommand = LogCommand()
+            val result = logCommand.execute(logArgs)
+
+            result.fold(
+                onSuccess = { output -> println(output) },
+                onFailure = { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
             )
         }
 
@@ -23,7 +35,7 @@ fun main(args: Array<String>) {
 
             result.fold(
                 onSuccess = { output -> println(output) },
-                onFailure = { error -> println("Error: ${error.message}") }
+                onFailure = { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
             )
         }
 
@@ -33,12 +45,23 @@ fun main(args: Array<String>) {
 
             result.fold(
                 onSuccess = { output -> println(output) },
-                onFailure = { error -> println("Error: ${error.message}") }
+                onFailure = { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
             )
         }
 
         "version", "--version", "-v" -> {
             println("notevc version ${Repository.VERSION}")
+        }
+
+        "restore" -> {
+            val restoreArgs = args.drop(1)
+            val restoreCommand = RestoreCommand()
+            val result = restoreCommand.execute(restoreArgs)
+
+            result.fold(
+                onSuccess = { output -> println(output) },
+                onFailure = { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
+            )
         }
         
         else -> {

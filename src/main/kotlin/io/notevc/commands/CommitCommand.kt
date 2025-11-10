@@ -7,6 +7,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.time.Instant
+import io.notevc.utils.ColorUtils
 import kotlin.io.path.*
 
 class CommitCommand {
@@ -97,9 +98,9 @@ class CommitCommand {
         updateRepositoryHead(repo, commitHash, timestamp, message)
         
         return buildString {
-            appendLine("Created commit $commitHash")
-            appendLine("Message: $message")
-            appendLine("File: $relativePath (${snapshot.blocks.size} blocks)")
+            appendLine("${ColorUtils.success("Created commit")} ${ColorUtils.hash(commitHash)}")
+            appendLine("${ColorUtils.bold("Message:")} $message")
+            appendLine("${ColorUtils.bold("File:")} ${ColorUtils.filename(relativePath)} ${ColorUtils.dim("(${snapshot.blocks.size} blocks)")}")
         }
     }
     
@@ -160,13 +161,16 @@ class CommitCommand {
         updateRepositoryHead(repo, commitHash, timestamp, message)
         
         return buildString {
-            appendLine("Created commit $commitHash")
-            appendLine("Message: $message")
-            appendLine("Files committed: ${changedFiles.size}")
-            appendLine("Total blocks: $totalBlocksStored")
+            appendLine("${ColorUtils.success("Created commit")} ${ColorUtils.hash(commitHash)}")
+            appendLine("${ColorUtils.bold("Message:")} $message")
+            appendLine("${ColorUtils.bold("Files committed:")} ${changedFiles.size}")
+            appendLine("${ColorUtils.bold("Total blocks:")} $totalBlocksStored")
             appendLine()
             changedFiles.forEach { fileInfo ->
-                appendLine("  $fileInfo")
+                val parts = fileInfo.split(" (")
+                val filename = parts[0]
+                val blockInfo = if (parts.size > 1) " (${parts[1]}" else ""
+                appendLine("  ${ColorUtils.filename(filename)}${ColorUtils.dim(blockInfo)}")
             }
         }
     }

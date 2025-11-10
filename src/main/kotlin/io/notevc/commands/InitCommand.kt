@@ -2,6 +2,7 @@ package io.notevc.commands
 
 import io.notevc.core.Repository
 import java.nio.file.Path
+import io.notevc.utils.ColorUtils
 
 class InitCommand {
     fun execute(path: String?): Result<String> {
@@ -13,7 +14,7 @@ class InitCommand {
             repo.init().fold(
                 onSuccess = {
                     val absolutePath = repo.path.toAbsolutePath().toString()
-                    Result.success("Initialized notevc repository in $absolutePath")
+                    Result.success("${ColorUtils.success("Initialized notevc repository")} in ${ColorUtils.filename(repo.path.toAbsolutePath().toString())}")
                 },
                 onFailure = {
                     error -> Result.failure(error)
