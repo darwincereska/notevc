@@ -6,11 +6,11 @@ plugins {
     application
     id("com.github.gmazzo.buildconfig") version "4.1.2"
     id("com.gradleup.shadow") version "9.2.2"
-    id("org.graalvm.buildtools.native") version "0.9.28"
+    id("org.graalvm.buildtools.native") version "0.10.3"
 }
 
 group = "io.notevc"
-version = "1.0.0"
+version = "1.0.1"
 
 buildConfig {
     buildConfigField("String", "VERSION", "\"${project.version}\"")
@@ -35,10 +35,8 @@ application {
     mainClass.set("io.notevc.NoteVCKt")
 }
 
-
-
 tasks.shadowJar {
-    archiveClassifier.set("")  // This should remove the -all suffix
+    archiveClassifier.set("")
     manifest {
         attributes(mapOf("Main-Class" to "io.notevc.NoteVCKt"))
     }
@@ -49,9 +47,6 @@ graalvmNative {
         named("main") {
             imageName.set("notevc")
             mainClass.set("io.notevc.NoteVCKt")
-            
-            // Force it to use the shadowJar
-            classpath.from(tasks.shadowJar.get().outputs.files)
             
             buildArgs.addAll(listOf(
                 "--no-fallback",
@@ -74,9 +69,10 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-tasks.nativeCompile {
-    dependsOn(tasks.shadowJar)
-}
+// Remove this line - let GraalVM use the default classpath
+// tasks.nativeCompile {
+//     dependsOn(tasks.shadowJar)
+// }
 
 tasks.build {
     dependsOn(tasks.shadowJar)

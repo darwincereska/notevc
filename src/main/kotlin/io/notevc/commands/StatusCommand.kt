@@ -128,7 +128,7 @@ class StatusCommand {
         grouped[FileStatusType.UNTRACKED]?.let { untrackedFiles -> 
             output.appendLine(ColorUtils.bold("Untracked files:"))
             untrackedFiles.forEach { fileStatus -> 
-                output.appendLine("  ${ColorUtils.untracked(fileStatus.path)} ${ColorUtils.dim("${fileStatus.blockCount} blocks)")}")
+                output.appendLine("  ${ColorUtils.untracked(fileStatus.path)} ${ColorUtils.dim("(${fileStatus.blockCount} blocks)")}")
             }
             output.appendLine()
         }
