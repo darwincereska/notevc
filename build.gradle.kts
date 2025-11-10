@@ -6,7 +6,7 @@ plugins {
     application
     id("com.github.gmazzo.buildconfig") version "4.1.2"
     id("com.gradleup.shadow") version "9.2.2"
-    id("org.graalvm.buildtools.native") version "0.10.3"
+    id("org.graalvm.buildtools.native") version "0.10.4"
 }
 
 group = "io.notevc"
@@ -68,11 +68,6 @@ graalvmNative {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
-
-// Remove this line - let GraalVM use the default classpath
-// tasks.nativeCompile {
-//     dependsOn(tasks.shadowJar)
-// }
 
 tasks.build {
     dependsOn(tasks.shadowJar)

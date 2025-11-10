@@ -28,4 +28,4 @@ Thumbs.db
 
 # Other
 *.hprof
-.notevc/
+**/.notevc/
