@@ -26,7 +26,7 @@ dependencies {
     val junitVersion = "5.10.0"
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-    
+
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 }
@@ -47,19 +47,19 @@ graalvmNative {
         named("main") {
             imageName.set("notevc")
             mainClass.set("io.notevc.NoteVCKt")
-            
+
             buildArgs.addAll(listOf(
                 "--no-fallback",
                 "-H:+ReportExceptionStackTraces",
                 "-H:+UnlockExperimentalVMOptions",
-                
                 "--initialize-at-build-time=kotlin",
                 "--initialize-at-build-time=kotlinx",
                 "--initialize-at-build-time=io.notevc",
-                
-                "--enable-monitoring=heapdump,jfr",
                 "-H:IncludeResources=.*\\.json",
-                "-H:IncludeResources=.*\\.properties"
+                "-H:IncludeResources=.*\\.properties",
+                "-Ob",  // Optimize for size
+                "--gc=serial",  // Use smaller GC (if you don't need G1)
+                "--strict-image-heap"
             ))
         }
     }

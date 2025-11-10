@@ -37,6 +37,14 @@ jobs:
       - name: Build native binary
         run: gradle nativeCompile
       
+      - name: Install UPX (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y upx
+      
+      - name: Compress binary with UPX (Linux only)
+        if: matrix.os == 'ubuntu-latest'
+        run: upx --best --lzma build/native/nativeCompile/notevc
+      
       - name: Rename binary for platform
         run: |
           mv build/native/nativeCompile/notevc notevc-${{ matrix.platform }}
