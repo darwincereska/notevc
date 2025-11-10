@@ -113,10 +113,12 @@ class BlockParser {
         }
 
         // Add blocks in order
-        parsedFile.blocks.sortedBy { it.order }.forEach { block -> 
-            result.appendLine(block.content)
-            if (block != parsedFile.blocks.last()) {
-                result.appendLine()
+        val sortedBlocks = parsedFile.blocks.sortedBy { it.order }
+        sortedBlocks.forEachIndexed { index, block -> 
+            result.append(block.content)
+            // Add separator between blocks (not after last block)
+            if (index < sortedBlocks.size - 1) {
+                result.append("\n")
             }
         }
 

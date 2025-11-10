@@ -169,8 +169,8 @@ class BlockStore(
                     val snapshot = json.decodeFromString<BlockSnapshot>(content)
                     val snapshotTime = Instant.parse(snapshot.timestamp)
 
-                    // Only include snapshots before the given timestamp
-                    if (snapshotTime.isBefore(timestamp)) {
+                    // Only include snapshots before or at the given timestamp
+                    if (!snapshotTime.isAfter(timestamp)) {
                         snapshots.add(snapshot to snapshotTime)
                     }
                 } catch (e: Exception) {

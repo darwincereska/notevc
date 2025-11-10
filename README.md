@@ -1,6 +1,8 @@
 # ![logo.png](./images/png/Color40X50.png) NoteVC: Version Control for Markdown
 
 
+
+
 # Repository management
 
 Initialize notevc repo:
@@ -23,6 +25,7 @@ Show commit history:
 notevc log [--since=time]
 ```
 
+
 # Viewing changes
 
 Show changes since last commit:
@@ -39,6 +42,8 @@ Show specific commit:
 ```bash
 notevc show <commit-hash>
 ```
+
+
 
 # Restoration
 
@@ -57,6 +62,8 @@ Restore entire repo state:
 notevc checkout <commit-hash>
 ```
 
+
+
 # Utilities
 
 Remove old snapshots:
@@ -73,3 +80,5 @@ Show/set configuration:
 ```bash
 notevc config
 ```
+
+

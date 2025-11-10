@@ -4,6 +4,7 @@
 - [x] Configure `build.gradle.kts` with dependencies
 - [x] Set up testing framework
 
+
 # Core
 
 - [x] Create `Repository.kt` class
@@ -14,6 +15,7 @@
 - [x] Implement `Timeline.kt` for version tracking
 - [x] Add `RepoMetadata` and configuration
 
+
 # File Operations
 
 - [x] Implement markdown file scanning
@@ -23,7 +25,9 @@
 - [x] Add file timestamp tracking
 - [ ] Create backup and restore mechanisms
 
+
 # Core Commands
+
 
 ## Init Command
 
@@ -32,12 +36,14 @@
 - [x] Generate initial metadata file
 - [x] Handle existing repository detection
 
+
 ## Status Command
 
 - [x] `notevc status` - Show file changes
 - [x] Compare current files with last snapshot
 - [x] Display added/modified/deleted files
 - [x] Show clean working directory message
+
 
 ## Commit command
 
@@ -47,6 +53,7 @@
 - [x] Create snapshot with metadata
 - [x] Update repository head pointer
 
+
 ## Log Command
 
 - [ ] `notevc log` - Show commit history
@@ -54,7 +61,9 @@
 - [ ] Show commit hashes, messages, and timestamps
 - [ ] add `--since` time filtering option
 
+
 # Advanced Commands
+
 
 ## Diff Command
 
@@ -63,6 +72,7 @@
 - [ ] `notevc diff <commit>` - Compare with specific commit
 - [ ] Implement basic text diffing algorithm
 
+
 ## Restore Command
 
 - [ ] `notevc restore <commit>` - Restore entire state
@@ -70,11 +80,13 @@
 - [ ] Add conformation prompts for destructive operations
 - [ ] Handle file conflicts gracefully
 
+
 ## Show Command
 
 - [ ] `notevc show <commit>` - Display commit changes
 - [ ] Show commit metadata and file changes
 - [ ] Display file contents at specific commit
+
 
 # Utilities and Polish
 
@@ -85,6 +97,7 @@
 - [ ] Add version information (`notevc --version`)
 - [ ] Implement configuration file support
 
+
 # Testing
 
 - [ ] Write unit tests for `ObjectStore`
@@ -94,6 +107,7 @@
 - [ ] Add edge case testing (empty repos, corrupted data)
 - [ ] Performance testing with large note collections
 
+
 # Build and Distribution
 
 - [ ] Create fat JAR for distribution
@@ -101,6 +115,7 @@
 - [ ] Test on different operating systems
 - [ ] Create installation scripts
 - [ ] Add build automation (GitHub Actions)
+
 
 # Future Features
 
@@ -111,4 +126,5 @@
 - [ ] File watching for auto-commits
 - [ ] Export/import functionality
 - [ ] NeoVim Plugin
+
 
