@@ -15,16 +15,16 @@ jobs:
   build:
     name: Build ${{ matrix.platform }}
     strategy:
-      fail-fast: false  # Don't cancel other builds if one fails
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
             platform: linux-x64
             binary-name: notevc
-          - os: macos-15-intel  # Updated from macos-13
+          - os: macos-15-intel
             platform: macos-x64
             binary-name: notevc
-          - os: macos-latest    # This is ARM64
+          - os: macos-latest
             platform: macos-arm64
             binary-name: notevc
 
@@ -37,7 +37,7 @@ jobs:
     - name: Setup GraalVM
       uses: graalvm/setup-graalvm@v1
       with:
-        java-version: '21'  # Changed back to 21 for better compatibility
+        java-version: '21'
         distribution: 'graalvm'
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -60,29 +60,71 @@ jobs:
     - name: Make gradlew executable
       run: chmod +x ./gradlew
 
-    - name: Build native binary
-      run: ./gradlew clean nativeCompile
-
-    - name: Verify binary exists
+    - name: Debug - Check Java and GraalVM
       run: |
-        ls -la build/native/nativeCompile/
-        file build/native/nativeCompile/${{ matrix.binary-name }}
+        echo "Java version:"
+        java -version
+        echo "JAVA_HOME: $JAVA_HOME"
+        echo "PATH: $PATH"
+        echo "GraalVM native-image:"
+        which native-image || echo "native-image not found"
+        native-image --version || echo "native-image version failed"
 
-    - name: Package binary
+    - name: Debug - Check Gradle
+      run: |
+        echo "Gradle version:"
+        ./gradlew --version
+        echo "Gradle tasks:"
+        ./gradlew tasks --group="graalvm native image"
+
+    - name: Build with verbose output
+      run: |
+        echo "Starting build..."
+        ./gradlew clean nativeCompile --info --stacktrace
+      continue-on-error: true
+
+    - name: Debug - Check build output
+      if: always()
+      run: |
+        echo "Build directory contents:"
+        find build -type f -name "*" 2>/dev/null || echo "Build directory not found"
+        echo "Native compile directory:"
+        ls -la build/native/ 2>/dev/null || echo "Native directory not found"
+        ls -la build/native/nativeCompile/ 2>/dev/null || echo "NativeCompile directory not found"
+
+    - name: Try alternative build approach
+      if: failure()
+      run: |
+        echo "Trying shadowJar first..."
+        ./gradlew shadowJar --info
+        echo "ShadowJar contents:"
+        ls -la build/libs/ || echo "No libs directory"
+        echo "Trying nativeCompile again..."
+        ./gradlew nativeCompile --info --stacktrace
+
+    - name: Package binary (if exists)
+      if: success()
       run: |
         mkdir -p dist
-        cp build/native/nativeCompile/${{ matrix.binary-name }} dist/
-        cd dist
-        tar -czf notevc-${{ matrix.platform }}.tar.gz ${{ matrix.binary-name }}
-        
-        # Generate SHA256
-        if [[ "${{ runner.os }}" == "Linux" ]]; then
-          sha256sum notevc-${{ matrix.platform }}.tar.gz > notevc-${{ matrix.platform }}.tar.gz.sha256
+        if [ -f "build/native/nativeCompile/${{ matrix.binary-name }}" ]; then
+          cp build/native/nativeCompile/${{ matrix.binary-name }} dist/
+          cd dist
+          tar -czf notevc-${{ matrix.platform }}.tar.gz ${{ matrix.binary-name }}
+          
+          # Generate SHA256
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            sha256sum notevc-${{ matrix.platform }}.tar.gz > notevc-${{ matrix.platform }}.tar.gz.sha256
+          else
+            shasum -a 256 notevc-${{ matrix.platform }}.tar.gz > notevc-${{ matrix.platform }}.tar.gz.sha256
+          fi
+          echo "Successfully packaged binary"
         else
-          shasum -a 256 notevc-${{ matrix.platform }}.tar.gz > notevc-${{ matrix.platform }}.tar.gz.sha256
+          echo "Binary not found at build/native/nativeCompile/${{ matrix.binary-name }}"
+          exit 1
         fi
 
     - name: Upload build artifacts
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: notevc-${{ matrix.platform }}
@@ -90,96 +132,13 @@ jobs:
           dist/notevc-${{ matrix.platform }}.tar.gz
           dist/notevc-${{ matrix.platform }}.tar.gz.sha256
 
-  release:
-    name: Create Release
-    needs: build
-    runs-on: ubuntu-latest
-    if: (startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch') && !cancelled()
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Download all artifacts
-      uses: actions/download-artifact@v4
+    - name: Upload logs on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
       with:
-        path: artifacts
-
-    - name: Prepare release assets
-      run: |
-        mkdir -p release-assets
-        find artifacts -name "*.tar.gz" -exec cp {} release-assets/ \;
-        find artifacts -name "*.sha256" -exec cp {} release-assets/ \;
-        ls -la release-assets/
-
-    - name: Extract version
-      id: version
-      run: |
-        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-          echo "tag=v${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-        else
-          echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Create Release
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: ${{ steps.version.outputs.tag }}
-        name: Release ${{ steps.version.outputs.version }}
-        draft: false
-        prerelease: false
-        generate_release_notes: true
-        files: release-assets/*
-        body: |
-          ## NoteVC ${{ steps.version.outputs.version }}
-          
-          Block-level version control for markdown notes with surgical restore precision.
-          
-          ### Installation
-          
-          **macOS (Homebrew):**
-          ```bash
-          brew install darwincereska/notevc/notevc
-          ```
-          
-          **Manual Installation:**
-          1. Download the appropriate binary for your platform
-          2. Extract: `tar -xzf notevc-<platform>.tar.gz`
-          3. Move to PATH: `sudo mv notevc /usr/local/bin/`
-          
-          ### Quick Start
-          ```bash
-          notevc init
-          notevc status
-          notevc commit "Your first commit"
-          notevc log
-          ```
-          
-          ### What's New
-          - Block-level version control for markdown files
-          - Time-based snapshot organization
-          - Surgical block restore by hash
-          - Colorized CLI output
-          - Front matter support
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Output release info
-      run: |
-        echo "Release created successfully!"
-        echo "Assets uploaded:"
-        ls -la release-assets/
-        echo ""
-        echo "SHA256 hashes for Homebrew formula:"
-        if [ -f release-assets/notevc-linux-x64.tar.gz.sha256 ]; then
-          echo "Linux x64:   $(cat release-assets/notevc-linux-x64.tar.gz.sha256 | cut -d' ' -f1)"
-        fi
-        if [ -f release-assets/notevc-macos-x64.tar.gz.sha256 ]; then
-          echo "macOS x64:   $(cat release-assets/notevc-macos-x64.tar.gz.sha256 | cut -d' ' -f1)"
-        fi
-        if [ -f release-assets/notevc-macos-arm64.tar.gz.sha256 ]; then
-          echo "macOS ARM64: $(cat release-assets/notevc-macos-arm64.tar.gz.sha256 | cut -d' ' -f1)"
-        fi
+        name: build-logs-${{ matrix.platform }}
+        path: |
+          build/reports/
+          ~/.gradle/daemon/
+        if-no-files-found: ignore
 
