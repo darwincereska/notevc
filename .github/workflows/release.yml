@@ -20,13 +20,10 @@ jobs:
         include:
           - os: ubuntu-latest
             platform: linux-x64
-            binary-name: notevc
           - os: macos-15-intel
             platform: macos-x64
-            binary-name: notevc
           - os: macos-latest
             platform: macos-arm64
-            binary-name: notevc
 
     runs-on: ${{ matrix.os }}
 
@@ -41,104 +38,36 @@ jobs:
         distribution: 'graalvm'
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+
     - name: Install native build tools (Linux)
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential zlib1g-dev
 
-    - name: Cache Gradle packages
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
+    - name: Build native binary
+      run: gradle clean nativeCompile --info
 
-    - name: Make gradlew executable
-      run: chmod +x ./gradlew
-
-    - name: Debug - Check Java and GraalVM
-      run: |
-        echo "Java version:"
-        java -version
-        echo "JAVA_HOME: $JAVA_HOME"
-        echo "PATH: $PATH"
-        echo "GraalVM native-image:"
-        which native-image || echo "native-image not found"
-        native-image --version || echo "native-image version failed"
-
-    - name: Debug - Check Gradle
-      run: |
-        echo "Gradle version:"
-        ./gradlew --version
-        echo "Gradle tasks:"
-        ./gradlew tasks --group="graalvm native image"
-
-    - name: Build with verbose output
-      run: |
-        echo "Starting build..."
-        ./gradlew clean nativeCompile --info --stacktrace
-      continue-on-error: true
-
-    - name: Debug - Check build output
-      if: always()
-      run: |
-        echo "Build directory contents:"
-        find build -type f -name "*" 2>/dev/null || echo "Build directory not found"
-        echo "Native compile directory:"
-        ls -la build/native/ 2>/dev/null || echo "Native directory not found"
-        ls -la build/native/nativeCompile/ 2>/dev/null || echo "NativeCompile directory not found"
-
-    - name: Try alternative build approach
-      if: failure()
-      run: |
-        echo "Trying shadowJar first..."
-        ./gradlew shadowJar --info
-        echo "ShadowJar contents:"
-        ls -la build/libs/ || echo "No libs directory"
-        echo "Trying nativeCompile again..."
-        ./gradlew nativeCompile --info --stacktrace
-
-    - name: Package binary (if exists)
-      if: success()
+    - name: Package binary
       run: |
         mkdir -p dist
-        if [ -f "build/native/nativeCompile/${{ matrix.binary-name }}" ]; then
-          cp build/native/nativeCompile/${{ matrix.binary-name }} dist/
-          cd dist
-          tar -czf notevc-${{ matrix.platform }}.tar.gz ${{ matrix.binary-name }}
-          
-          # Generate SHA256
-          if [[ "${{ runner.os }}" == "Linux" ]]; then
-            sha256sum notevc-${{ matrix.platform }}.tar.gz > notevc-${{ matrix.platform }}.tar.gz.sha256
-          else
-            shasum -a 256 notevc-${{ matrix.platform }}.tar.gz > notevc-${{ matrix.platform }}.tar.gz.sha256
-          fi
-          echo "Successfully packaged binary"
+        cp build/native/nativeCompile/notevc dist/
+        cd dist
+        tar -czf notevc-${{ matrix.platform }}.tar.gz notevc
+        
+        if [[ "${{ runner.os }}" == "Linux" ]]; then
+          sha256sum notevc-${{ matrix.platform }}.tar.gz > notevc-${{ matrix.platform }}.tar.gz.sha256
         else
-          echo "Binary not found at build/native/nativeCompile/${{ matrix.binary-name }}"
-          exit 1
+          shasum -a 256 notevc-${{ matrix.platform }}.tar.gz > notevc-${{ matrix.platform }}.tar.gz.sha256
         fi
 
     - name: Upload build artifacts
-      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: notevc-${{ matrix.platform }}
         path: |
           dist/notevc-${{ matrix.platform }}.tar.gz
           dist/notevc-${{ matrix.platform }}.tar.gz.sha256
-
-    - name: Upload logs on failure
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-logs-${{ matrix.platform }}
-        path: |
-          build/reports/
-          ~/.gradle/daemon/
-        if-no-files-found: ignore
 
