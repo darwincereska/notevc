@@ -41,7 +41,7 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Cache Gradle packages
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.gradle/caches
@@ -89,7 +89,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Download all artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         path: artifacts
 
@@ -112,7 +112,7 @@ jobs:
         fi
 
     - name: Create Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.version.outputs.tag }}
         name: Release ${{ steps.version.outputs.version }}
@@ -167,7 +167,12 @@ jobs:
         ls -la release-assets/
         echo ""
         echo "SHA256 hashes for Homebrew formula:"
-        echo "Linux x64:   $(cat release-assets/notevc-linux-x64.tar.gz.sha256 | cut -d' ' -f1)"
-        echo "macOS x64:   $(cat release-assets/notevc-macos-x64.tar.gz.sha256 | cut -d' ' -f1)"
-        echo "macOS ARM64: $(cat release-assets/notevc-macos-arm64.tar.gz.sha256 | cut -d' ' -f1)"
-
+        if [ -f release-assets/notevc-linux-x64.tar.gz.sha256 ]; then
+          echo "Linux x64:   $(cat release-assets/notevc-linux-x64.tar.gz.sha256 | cut -d' ' -f1)"
+        fi
+        if [ -f release-assets/notevc-macos-x64.tar.gz.sha256 ]; then
+          echo "macOS x64:   $(cat release-assets/notevc-macos-x64.tar.gz.sha256 | cut -d' ' -f1)"
+        fi
+        if [ -f release-assets/notevc-macos-arm64.tar.gz.sha256 ]; then
+          echo "macOS ARM64: $(cat release-assets/notevc-macos-arm64.tar.gz.sha256 | cut -d' ' -f1)"
+        fi
