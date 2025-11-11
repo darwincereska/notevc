@@ -23,7 +23,7 @@
 - [x] Add file content reading/writing utilities
 - [x] Implement path resolution and validation
 - [x] Add file timestamp tracking
-- [ ] Create backup and restore mechanisms
+- [x] Create backup and restore mechanisms
 
 
 # Core Commands
@@ -56,10 +56,10 @@
 
 ## Log Command
 
-- [ ] `notevc log` - Show commit history
-- [ ] Display snapshots in reverse chronological order
-- [ ] Show commit hashes, messages, and timestamps
-- [ ] add `--since` time filtering option
+- [x] `notevc log` - Show commit history
+- [x] Display snapshots in reverse chronological order
+- [x] Show commit hashes, messages, and timestamps
+- [x] add `--since` time filtering option
 
 
 # Advanced Commands
@@ -75,10 +75,10 @@
 
 ## Restore Command
 
-- [ ] `notevc restore <commit>` - Restore entire state
-- [ ] `notevc restore <commit> <file>` - Restore specific file
-- [ ] Add conformation prompts for destructive operations
-- [ ] Handle file conflicts gracefully
+- [x] `notevc restore <commit>` - Restore entire state
+- [x] `notevc restore <commit> <file>` - Restore specific file
+- [x] Add conformation prompts for destructive operations
+- [x] Handle file conflicts gracefully
 
 
 ## Show Command
@@ -90,11 +90,11 @@
 
 # Utilities and Polish
 
-- [ ] Add colored output for better UX
+- [x] Add colored output for better UX
 - [ ] Implement proper error handling messages
 - [ ] Add input validation for all commands
 - [ ] Create help system (`notevc --help`)
-- [ ] Add version information (`notevc --version`)
+- [x] Add version information (`notevc --version`)
 - [ ] Implement configuration file support
 
 
@@ -110,11 +110,11 @@
 
 # Build and Distribution
 
-- [ ] Create fat JAR for distribution
-- [ ] Add shell script wrapper for easy execution
-- [ ] Test on different operating systems
-- [ ] Create installation scripts
-- [ ] Add build automation (GitHub Actions)
+- [x] Create fat JAR for distribution
+- [x] Add shell script wrapper for easy execution
+- [x] Test on different operating systems
+- [x] Create installation scripts
+- [x] Add build automation (GitHub Actions)
 
 
 # Future Features

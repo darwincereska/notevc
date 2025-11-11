@@ -75,14 +75,42 @@ class BlockParser {
 
         val yamlLines = lines.subList(1, endIndex + 1)
         val properties = mutableMapOf<String, String>()
+        var currentKey: String? = null
+        val arrayValues = mutableListOf<String>()
 
         yamlLines.forEach { line ->
-            val colonIndex = line.indexOf(":")
-            if (colonIndex != -1) {
-                val key = line.take(colonIndex).trim()
-                val value = line.substring(colonIndex + 1).trim().removeSurrounding("\"")
-                properties[key] = value
+            when {
+                // Handle array items (lines starting with -)
+                line.trim().startsWith("- ") && currentKey != null -> {
+                    val value = line.trim().substring(2).trim().removeSurrounding("\"")
+                    arrayValues.add(value)
+                }
+                // Handle key-value pairs
+                line.contains(":") -> {
+                    // Save previous array if exists
+                    if (currentKey != null && arrayValues.isNotEmpty()) {
+                        properties[currentKey] = arrayValues.joinToString(", ")
+                        arrayValues.clear()
+                    }
+                    
+                    val colonIndex = line.indexOf(":")
+                    val key = line.take(colonIndex).trim()
+                    val value = line.substring(colonIndex + 1).trim().removeSurrounding("\"")
+                    
+                    if (value.isEmpty()) {
+                        // This might be an array key
+                        currentKey = key
+                    } else {
+                        properties[key] = value
+                        currentKey = null
+                    }
+                }
             }
+        }
+        
+        // Save final array if exists
+        if (currentKey != null && arrayValues.isNotEmpty()) {
+            properties[currentKey] = arrayValues.joinToString(", ")
         }
 
         return FrontMatter(
@@ -106,7 +134,15 @@ class BlockParser {
         parsedFile.frontMatter?.let { fm -> 
             result.appendLine("---")
             fm.properties.forEach { (key, value) -> 
-                result.appendLine("$key: \"$value\"")
+                // Handle tags as array
+                if (key == "tags" && value.contains(",")) {
+                    result.appendLine("$key:")
+                    value.split(",").forEach { tag ->
+                        result.appendLine("  - ${tag.trim()}")
+                    }
+                } else {
+                    result.appendLine("$key: \"$value\"")
+                }
             }
             result.appendLine("---")
             result.appendLine()
@@ -147,8 +183,11 @@ data class FrontMatter(
     val properties: Map<String, String>,
     val endLine: Int
 ) {
-    val isEnabled: Boolean get() = properties["enabled"]?.lowercase() == "true"
+    // Default to true if not specified
+    val isEnabled: Boolean get() = properties["enabled"]?.lowercase() != "false"
     val isAutomatic: Boolean get() = properties["automatic"]?.lowercase() == "true"
+    val title: String? get() = properties["title"]
+    val tags: List<String> get() = properties["tags"]?.split(",")?.map { it.trim() } ?: emptyList()
 }
 
 enum class BlockType {

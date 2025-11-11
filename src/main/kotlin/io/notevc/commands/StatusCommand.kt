@@ -114,7 +114,7 @@ class StatusCommand {
                 output.appendLine("  ${ColorUtils.filename(fileStatus.path)}")
                 fileStatus.blockChanges?.forEach { change -> 
                     val symbol = when (change.type) {
-                        BlockChangeType.MODIFIED -> ColorUtils.modified("M") 
+                        BlockChangeType.MODIFIED -> ColorUtils.modified("~") 
                         BlockChangeType.ADDED -> ColorUtils.added("+")
                         BlockChangeType.DELETED -> ColorUtils.deleted("-")
                     }

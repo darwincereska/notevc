@@ -55,11 +55,11 @@ class BlockStore(
     }
 
     // Compare blocks between two snapshots
-    fun compareBlocks(oldSnapshot: BlockSnapshot?, newSnapshot: BlockSnapshot): List<BlockChange> {
+    fun compareBlocks(oldSnapshot: BlockSnapshot?, newSnapshot: BlockSnapshot?): List<BlockChange> {
         val changes = mutableListOf<BlockChange>()
 
         val oldBlocks = oldSnapshot?.blocks?.associateBy { it.id } ?: emptyMap()
-        val newBlocks = newSnapshot.blocks.associateBy { it.id }
+        val newBlocks = newSnapshot?.blocks?.associateBy { it.id } ?: emptyMap()
 
         // Find added and modified blocks
         newBlocks.forEach { (id, newBlock) -> 

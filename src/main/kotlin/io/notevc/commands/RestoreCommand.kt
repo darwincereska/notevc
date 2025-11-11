@@ -127,13 +127,16 @@ class RestoreCommand {
 
         // Find the block snapshot for this file at the commit time
         val commitTime = Instant.parse(commit.timestamp)
-        val blocks = blockStore.getBlocksAtTime(targetFile, commitTime)
+        val snapshot = blockStore.getLatestBlockSnapshotBefore(targetFile, commitTime)
         ?: throw Exception("No snapshot found for ${ColorUtils.filename(targetFile)} at commit ${ColorUtils.hash(commitHash)}")
 
-        // Reconstruct the file from blocks
+        val blocks = blockStore.getBlocksAtTime(targetFile, commitTime)
+        ?: throw Exception("No blocks found for ${ColorUtils.filename(targetFile)} at commit ${ColorUtils.hash(commitHash)}")
+
+        // Reconstruct the file from blocks with frontmatter from snapshot
         val parsedFile = ParsedFile(
             path = targetFile,
-            frontMatter = null, // TODO: Get front matter from snapshot
+            frontMatter = snapshot.frontMatter,
             blocks = blocks
         )
 
@@ -169,11 +172,12 @@ class RestoreCommand {
         var totalBlocks = 0
 
         trackedFiles.forEach { filePath ->
+            val snapshot = blockStore.getLatestBlockSnapshotBefore(filePath, commitTime)
             val blocks = blockStore.getBlocksAtTime(filePath, commitTime)
             if (blocks != null) {
                 val parsedFile = ParsedFile(
                     path = filePath,
-                    frontMatter = null, // TODO: Get front matter from snapshot
+                    frontMatter = snapshot?.frontMatter,
                     blocks = blocks
                 )
 

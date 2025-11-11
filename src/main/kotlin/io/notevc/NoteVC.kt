@@ -63,9 +63,31 @@ fun main(args: Array<String>) {
                 onFailure = { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
             )
         }
+
+        "diff" -> {
+            val diffArgs = args.drop(1)
+            val diffCommand = DiffCommand()
+            val result = diffCommand.execute(diffArgs)
+
+            result.fold(
+                onSuccess = { output -> println(output) },
+                onFailure = { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
+            )
+        }
+
+        "show" -> {
+            val showArgs = args.drop(1)
+            val showCommand = ShowCommand()
+            val result = showCommand.execute(showArgs)
+
+            result.fold(
+                onSuccess = { output -> println(output) },
+                onFailure = { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
+            )
+        }
         
         else -> {
-            println("Usage: notevc init|commit|status|version")
+            println("Usage: notevc init|commit|status|log|restore|diff|show|version")
         }
     }
 }

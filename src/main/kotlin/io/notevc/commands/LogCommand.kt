@@ -36,7 +36,7 @@ class LogCommand {
         while (i < args.size) {
             when (args[i]) {
                 "--max-count", "-n" -> {
-                    if (i + 1 < args.size) {
+                    if (i + 1 < args.size && !args[i + 1].startsWith("-")) {
                         maxCount = args[i + 1].toIntOrNull()
                         i += 2
                     } else {
@@ -44,7 +44,7 @@ class LogCommand {
                     }
                 }
                 "--since" -> {
-                    if (i + 1 < args.size) {
+                    if (i + 1 < args.size && !args[i + 1].startsWith("-")) {
                         since = args[i + 1]
                         i += 2
                     } else {
@@ -56,12 +56,11 @@ class LogCommand {
                     i++
                 }
                 "--file", "-f" -> {
-                    if (i + 1 < args.size) {
+                    showFiles = true
+                    if (i + 1 < args.size && !args[i + 1].startsWith("-")) {
                         targetFile = args[i + 1]
-                        showFiles = true
                         i += 2
                     } else {
-                        showFiles = true
                         i++
                     }
                 }
