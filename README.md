@@ -23,6 +23,27 @@ The executable will be in `build/install/notevc/bin/notevc`
 
 ---
 
+## Global Options
+
+These options work with any command and should be placed before the command name:
+
+- `--no-color`: Disable colored output
+
+**Examples:**
+```bash
+notevc --no-color status
+notevc --no-color diff
+notevc --no-color log --oneline
+notevc --no-color show a1b2c3d4
+```
+
+**Alternative methods to disable colors:**
+- Set `NO_COLOR=1` environment variable: `NO_COLOR=1 notevc status`
+- Pipe output: `notevc status | less` (colors auto-disabled)
+- CI environments automatically disable colors
+
+---
+
 ## Command Reference
 
 ### Repository Management

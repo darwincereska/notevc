@@ -24,10 +24,20 @@ object ColorUtils {
     private const val BRIGHT_MAGENTA = "\u001B[95m"
     private const val BRIGHT_CYAN = "\u001B[96m"
 
-    // Check if colors should be enabled (disable in CI/pipes)
-    private val colorsEnabled = System.getenv("NO_COLOR") == null && 
-    System.getenv("CI") == null &&
-    System.console() != null
+    // Flag to force disable colors via --no-color flag
+    var forceDisableColors = false
+
+    // Check if colors should be enabled (disable in CI/pipes or via flag)
+    private val colorsEnabled: Boolean
+        get() = !forceDisableColors &&
+                System.getenv("NO_COLOR") == null && 
+                System.getenv("CI") == null &&
+                System.console() != null
+
+    // Function to disable colors programmatically
+    fun disableColors() {
+        forceDisableColors = true
+    }
 
     // Public color functions
     fun red(text: String): String = if (colorsEnabled) "$RED$text$RESET" else text

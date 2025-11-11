@@ -5,11 +5,22 @@ import io.notevc.commands.*
 import io.notevc.utils.ColorUtils
 
 fun main(args: Array<String>) {
+    // Parse global flags first (like --no-color)
+    val filteredArgs = args.filter { arg ->
+        when (arg) {
+            "--no-color" -> {
+                ColorUtils.disableColors()
+                false  // Remove this arg from the list
+            }
+            else -> true  // Keep this arg
+        }
+    }.toTypedArray()
+
     // Args logic
-    when (args.firstOrNull()) {
+    when (filteredArgs.firstOrNull()) {
         "init", "i" -> {
             val initCommand = InitCommand()
-            val result = initCommand.execute(args.getOrNull(1))
+            val result = initCommand.execute(filteredArgs.getOrNull(1))
 
             result.fold(
                 onSuccess = { message -> println(message) },
@@ -18,7 +29,7 @@ fun main(args: Array<String>) {
         }
 
         "log" -> {
-            val logArgs = args.drop(1)
+            val logArgs = filteredArgs.drop(1)
             val logCommand = LogCommand()
             val result = logCommand.execute(logArgs)
 
@@ -29,7 +40,7 @@ fun main(args: Array<String>) {
         }
 
         "commit" -> {
-            val commitArgs = args.drop(1)
+            val commitArgs = filteredArgs.drop(1)
             val commitCommand = CommitCommand()
             val result = commitCommand.execute(commitArgs)
 
@@ -54,7 +65,7 @@ fun main(args: Array<String>) {
         }
 
         "restore" -> {
-            val restoreArgs = args.drop(1)
+            val restoreArgs = filteredArgs.drop(1)
             val restoreCommand = RestoreCommand()
             val result = restoreCommand.execute(restoreArgs)
 
@@ -65,7 +76,7 @@ fun main(args: Array<String>) {
         }
 
         "diff" -> {
-            val diffArgs = args.drop(1)
+            val diffArgs = filteredArgs.drop(1)
             val diffCommand = DiffCommand()
             val result = diffCommand.execute(diffArgs)
 
@@ -76,7 +87,7 @@ fun main(args: Array<String>) {
         }
 
         "show" -> {
-            val showArgs = args.drop(1)
+            val showArgs = filteredArgs.drop(1)
             val showCommand = ShowCommand()
             val result = showCommand.execute(showArgs)
 
@@ -87,7 +98,7 @@ fun main(args: Array<String>) {
         }
         
         else -> {
-            println("Usage: notevc init|commit|status|log|restore|diff|show|version")
+            println("Usage: notevc [--no-color] init|commit|status|log|restore|diff|show|version")
         }
     }
 }
