@@ -1,4 +1,4 @@
-# ![logo.png](./images/png/Color40X50.png) NoteVC: Version Control for Markdown
+# ![logo.png](./images/png/NoteVC_50×50.png) NoteVC: Version Control for Markdown
 
 Block-level version control for markdown files. Track changes at the heading level, not just file level.
 
