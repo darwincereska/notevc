@@ -86,7 +86,7 @@ class LogCommand {
         val commits = Json.decodeFromString<List<CommitEntry>>(content)
         
         // Filter commits based on options
-        val filteredCommits = filterCommits(commits, options)
+        val filteredCommits = filterCommits(commits, options, repo)
         
         return if (options.oneline) {
             formatOnelineLog(filteredCommits, repo, options)
@@ -95,7 +95,7 @@ class LogCommand {
         }
     }
     
-    private fun filterCommits(commits: List<CommitEntry>, options: LogOptions): List<CommitEntry> {
+    private fun filterCommits(commits: List<CommitEntry>, options: LogOptions, repo: Repository): List<CommitEntry> {
         var filtered = commits
         
         // Filter by date if --since is provided
@@ -105,6 +105,15 @@ class LogCommand {
                 val commitTime = Instant.parse(commit.timestamp)
                 commitTime.isAfter(sinceTime)
             }
+        }
+
+        // Filter by file if --file <file> is provided
+        options.targetFile?.let { targetFile ->
+           filtered = filtered.filter { commit ->
+               val commitTime = Instant.parse(commit.timestamp)
+               val snapshots = findSnapshotsForCommit(repo, commitTime, targetFile)
+               snapshots.any { snapshot -> snapshot.filePath == targetFile }
+           } 
         }
         
         // Limit count if --max-count is provided
