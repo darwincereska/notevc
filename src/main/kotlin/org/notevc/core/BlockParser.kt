@@ -1,4 +1,4 @@
-package io.notevc.core
+package org.notevc.core
 
 import kotlinx.serialization.Serializable
 
@@ -123,7 +123,7 @@ class BlockParser {
     private fun generateBlockId(filePath: String, heading: String, order: Int): String {
         val cleanHeading = heading.replace(Regex("^#+\\s*"), "").trim()
         val baseId = "$filePath:$cleanHeading:$order"
-        return io.notevc.utils.HashUtils.sha256(baseId).take(12)
+        return org.notevc.utils.HashUtils.sha256(baseId).take(12)
     }
     
     // Reconstruct file from blocks

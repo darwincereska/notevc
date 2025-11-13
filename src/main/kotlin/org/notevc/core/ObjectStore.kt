@@ -1,7 +1,7 @@
-package io.notevc.core
+package org.notevc.core
 
 import java.nio.file.Files
-import io.notevc.utils.HashUtils
+import org.notevc.utils.HashUtils
 import java.nio.file.Path
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream

@@ -1,9 +1,9 @@
-package io.notevc.core
+package org.notevc.core
 
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.*
-import io.notevc.BuildConfig
+import org.notevc.BuildConfig
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString

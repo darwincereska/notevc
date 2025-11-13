@@ -1,7 +1,7 @@
-package io.notevc.commands
+package org.notevc.commands
 
-import io.notevc.core.*
-import io.notevc.utils.ColorUtils
+import org.notevc.core.*
+import org.notevc.utils.ColorUtils
 import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.time.Instant
@@ -245,7 +245,7 @@ class DiffCommand {
             }
             listOf(targetFile)
         } else {
-            io.notevc.utils.FileUtils.findMarkdownFiles(repo.path).map {
+            org.notevc.utils.FileUtils.findMarkdownFiles(repo.path).map {
                 repo.path.relativize(it).toString()
             }
         }
@@ -302,7 +302,7 @@ class DiffCommand {
             }
             listOf(targetFile)
         } else {
-            io.notevc.utils.FileUtils.findMarkdownFiles(repo.path).map {
+            org.notevc.utils.FileUtils.findMarkdownFiles(repo.path).map {
                 repo.path.relativize(it).toString()
             }
         }

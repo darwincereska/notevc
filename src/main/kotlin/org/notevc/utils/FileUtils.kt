@@ -1,10 +1,10 @@
-package io.notevc.utils
+package org.notevc.utils
 
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Instant
 import kotlin.io.path.*
-import io.notevc.core.Repository.Companion.NOTEVC_DIR
+import org.notevc.core.Repository.Companion.NOTEVC_DIR
 
 object FileUtils {
     // Find all markdown files in directory (recursively)

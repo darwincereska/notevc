@@ -1,7 +1,7 @@
-package io.notevc.commands
+package org.notevc.commands
 
-import io.notevc.core.*
-import io.notevc.utils.ColorUtils
+import org.notevc.core.*
+import org.notevc.utils.ColorUtils
 import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.time.Instant

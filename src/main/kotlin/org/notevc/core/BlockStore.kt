@@ -1,6 +1,6 @@
-package io.notevc.core
+package org.notevc.core
 
-import io.notevc.utils.HashUtils
+import org.notevc.utils.HashUtils
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

@@ -1,4 +1,4 @@
-package io.notevc.utils
+package org.notevc.utils
 
 import java.security.MessageDigest
 

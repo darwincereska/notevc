@@ -1,8 +1,8 @@
-package io.notevc
+package org.notevc
 
-import io.notevc.core.Repository
-import io.notevc.commands.*
-import io.notevc.utils.ColorUtils
+import org.notevc.core.Repository
+import org.notevc.commands.*
+import org.notevc.utils.ColorUtils
 
 fun main(args: Array<String>) {
     // Parse global flags first (like --no-color)
@@ -99,6 +99,7 @@ fun main(args: Array<String>) {
         
         else -> {
             println("Usage: notevc [--no-color] init|commit|status|log|restore|diff|show|version")
+            println("For more info, visit: ${ColorUtils.bold("https://notevc.org")}")
         }
     }
 }

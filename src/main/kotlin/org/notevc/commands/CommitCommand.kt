@@ -1,13 +1,13 @@
-package io.notevc.commands
+package org.notevc.commands
 
-import io.notevc.core.*
-import io.notevc.utils.FileUtils
-import io.notevc.utils.HashUtils
+import org.notevc.core.*
+import org.notevc.utils.FileUtils
+import org.notevc.utils.HashUtils
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.time.Instant
-import io.notevc.utils.ColorUtils
+import org.notevc.utils.ColorUtils
 import kotlin.io.path.*
 
 class CommitCommand {

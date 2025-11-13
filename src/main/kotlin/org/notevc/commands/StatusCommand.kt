@@ -1,9 +1,9 @@
-package io.notevc.commands
+package org.notevc.commands
 
-import io.notevc.core.*
-import io.notevc.utils.FileUtils
-import io.notevc.utils.ColorUtils
-import io.notevc.core.Repository.Companion.NOTEVC_DIR
+import org.notevc.core.*
+import org.notevc.utils.FileUtils
+import org.notevc.utils.ColorUtils
+import org.notevc.core.Repository.Companion.NOTEVC_DIR
 import java.time.Instant
 
 class StatusCommand {

@@ -1,10 +1,10 @@
-package io.notevc.commands
+package org.notevc.commands
 
-import io.notevc.core.*
+import org.notevc.core.*
 import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.time.Instant
-import io.notevc.utils.ColorUtils
+import org.notevc.utils.ColorUtils
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.io.path.*

@@ -9,13 +9,13 @@ plugins {
     id("org.graalvm.buildtools.native") version "0.10.4"
 }
 
-group = "io.notevc"
-version = "1.0.4"
+group = "org.notevc"
+version = "1.0.5"
 
 buildConfig {
     buildConfigField("String", "VERSION", "\"${project.version}\"")
     buildConfigField("String", "BUILD_TIME", "\"${Instant.now()}\"")
-    packageName("io.notevc")
+    packageName("org.notevc")
 }
 
 repositories {
@@ -32,13 +32,13 @@ dependencies {
 }
 
 application {
-    mainClass.set("io.notevc.NoteVCKt")
+    mainClass.set("org.notevc.NoteVCKt")
 }
 
 tasks.shadowJar {
     archiveClassifier.set("")
     manifest {
-        attributes(mapOf("Main-Class" to "io.notevc.NoteVCKt"))
+        attributes(mapOf("Main-Class" to "org.notevc.NoteVCKt"))
     }
 }
 
@@ -46,7 +46,7 @@ graalvmNative {
     binaries {
         named("main") {
             imageName.set("notevc")
-            mainClass.set("io.notevc.NoteVCKt")
+            mainClass.set("org.notevc.NoteVCKt")
 
             buildArgs.addAll(listOf(
                 "--no-fallback",

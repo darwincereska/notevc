@@ -1,8 +1,8 @@
-package io.notevc.commands
+package org.notevc.commands
 
-import io.notevc.core.Repository
+import org.notevc.core.Repository
 import java.nio.file.Path
-import io.notevc.utils.ColorUtils
+import org.notevc.utils.ColorUtils
 
 class InitCommand {
     fun execute(path: String?): Result<String> {
