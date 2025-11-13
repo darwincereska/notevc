@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "org.notevc"
-version = "1.0.5"
+version = "1.0.6"
 
 buildConfig {
     buildConfigField("String", "VERSION", "\"${project.version}\"")
