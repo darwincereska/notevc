@@ -5,8 +5,21 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release'
+        required: true
 
 jobs:
+  validate-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check tag
+        run: |
+          if [ -z "${{ github.event.inputs.tag }}" ]; then
+            echo "Error: You must provide a tag to run this workflow."
+            exit 1
+          fi
   build:
     strategy:
       matrix:
