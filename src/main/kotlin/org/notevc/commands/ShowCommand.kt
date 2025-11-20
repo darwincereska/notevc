@@ -8,66 +8,29 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.io.path.*
+import org.kargs.*
 
-class ShowCommand {
+class ShowCommand : Subcommand("show", description = "Show detailed information about a specific commit", aliases = listOf("sh")) {
+    val commitHash by Argument(ArgType.String, "commit-hash", description = "Commit to show", required = true)
+    val targetFile by Option(ArgType.readableFile(), longName = "file", shortName = "f", description = "Show changes only for specific file")
+    val blockHash by Option(ArgType.String, longName = "block", shortName = "b", description = "Show specific block content")
+    val showContent by Flag(longName = "content", shortName = "c", description = "Show full file content at commit")
 
-    fun execute(args: List<String>): Result<String> {
-        return try {
-            if (args.isEmpty()) {
-                return Result.failure(Exception("Commit hash is required. Usage: notevc show <commit-hash> [--file <file>] [--block <block>] [--content]"))
-            }
+    override fun execute() {
+        val result: Result<String> = runCatching {
+            val repo = Repository.find() ?: throw Exception("Not in a notevc repository. Run `notevc init` first.")
 
-            val options = parseArgs(args)
+            val options = ShowOptions(commitHash!!, targetFile?.toString(), blockHash, showContent ?: false)
 
-            val repo = Repository.find()
-                ?: return Result.failure(Exception("Not in a notevc repository. Run 'notevc init' first."))
-
-            val result = when {
+            when {
                 options.blockHash != null -> showBlock(repo, options)
                 options.showContent -> showFileContent(repo, options)
                 else -> showCommit(repo, options.commitHash, options.targetFile)
             }
-
-            Result.success(result)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    private fun parseArgs(args: List<String>): ShowOptions {
-        val commitHash = args[0]
-        var targetFile: String? = null
-        var blockHash: String? = null
-        var showContent = false
-
-        var i = 1
-        while (i < args.size) {
-            when {
-                args[i] == "--file" && i + 1 < args.size && !args[i + 1].startsWith("-") -> {
-                    targetFile = args[i + 1]
-                    i += 2
-                }
-                args[i].startsWith("--file=") -> {
-                    targetFile = args[i].substring(7)
-                    i++
-                }
-                args[i] == "--block" || args[i] == "-b" -> {
-                    if (i + 1 < args.size && !args[i + 1].startsWith("-")) {
-                        blockHash = args[i + 1]
-                        i += 2
-                    } else {
-                        i++
-                    }
-                }
-                args[i] == "--content" || args[i] == "-c" -> {
-                    showContent = true
-                    i++
-                }
-                else -> i++
-            }
         }
 
-        return ShowOptions(commitHash, targetFile, blockHash, showContent)
+        result.onSuccess { message -> println(message) }
+        result.onFailure { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
     }
 
     private fun showCommit(repo: Repository, commitHash: String, targetFile: String?): String {

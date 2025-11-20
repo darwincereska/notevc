@@ -4,13 +4,13 @@ plugins {
     kotlin("jvm") version "2.2.21"
     kotlin("plugin.serialization") version "2.2.21"
     application
-    id("com.github.gmazzo.buildconfig") version "4.1.2"
+    id("com.github.gmazzo.buildconfig") version "5.7.1"
     id("com.gradleup.shadow") version "9.2.2"
     id("org.graalvm.buildtools.native") version "0.10.4"
 }
 
 group = "org.notevc"
-version = "1.0.6"
+version = "1.0.7"
 
 buildConfig {
     buildConfigField("String", "VERSION", "\"${project.version}\"")
@@ -26,6 +26,7 @@ dependencies {
     val junitVersion = "5.10.0"
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("org.kargs:kargs:1.0.4")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
@@ -50,16 +51,14 @@ graalvmNative {
 
             buildArgs.addAll(listOf(
                 "--no-fallback",
-                "-H:+ReportExceptionStackTraces",
                 "-H:+UnlockExperimentalVMOptions",
                 "--initialize-at-build-time=kotlin",
                 "--initialize-at-build-time=kotlinx",
-                "--initialize-at-build-time=io.notevc",
-                "-H:IncludeResources=.*\\.json",
-                "-H:IncludeResources=.*\\.properties",
+                "--initialize-at-build-time=org.notevc",
+                // "-H:IncludeResources=.*\\.json",
+                // "-H:IncludeResources=.*\\.properties",
                 "-Ob",  // Optimize for size
-                "--gc=serial",  // Use smaller GC (if you don't need G1)
-                "--strict-image-heap"
+                "--gc=epsilon",  // Serial or epsilon
             ))
         }
     }
@@ -80,3 +79,4 @@ tasks.jar {
 tasks.startScripts {
     dependsOn(tasks.shadowJar)
 }
+

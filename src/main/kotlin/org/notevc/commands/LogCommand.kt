@@ -8,69 +8,28 @@ import org.notevc.utils.ColorUtils
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.io.path.*
+import org.kargs.*
 
-class LogCommand {
-    
-    fun execute(args: List<String>): Result<String> {
-        return try {
-            val repo = Repository.find()
-                ?: return Result.failure(Exception("Not in a notevc repository. Run 'notevc init' first."))
-            
-            val options = parseArgs(args)
-            val logOutput = generateLog(repo, options)
-            
-            Result.success(logOutput)
-        } catch (e: Exception) {
-            Result.failure(e)
+class LogCommand : Subcommand("log", description = "Show commit history with details") {
+    val maxCount by Option(ArgType.intRange(1, 100), longName = "max-count", shortName = "n", description = "Limit the number of commits shown")
+    val since by Option(ArgType.String, longName = "since", shortName = "s", description = "Show commits since specified time (e.g. 1h, 2d, 1w)")
+    val oneline by Flag(longName = "oneline", "o", description = "Show compact one-line format")
+    val file by OptionalOption(longName = "file", shortName = "f", description = "Show specific file and block details for each commit")
+
+    override fun execute() {
+        val result: Result<String> = runCatching {
+            val repo = Repository.find() ?: throw Exception("Not in a notevc repository. Run `notevc init` first.")
+
+            val targetFile: String? = if (file == "true") null else file
+
+            val options = LogOptions(maxCount, since, oneline ?: false, file == "true" || targetFile != null, targetFile)
+            generateLog(repo, options)
         }
+
+        result.onSuccess { message -> println(message) }
+        result.onFailure { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
     }
-    
-    private fun parseArgs(args: List<String>): LogOptions {
-        var maxCount: Int? = null
-        var since: String? = null
-        var oneline = false
-        var showFiles = false
-        var targetFile: String? = null
-        
-        var i = 0
-        while (i < args.size) {
-            when (args[i]) {
-                "--max-count", "-n" -> {
-                    if (i + 1 < args.size && !args[i + 1].startsWith("-")) {
-                        maxCount = args[i + 1].toIntOrNull()
-                        i += 2
-                    } else {
-                        i++
-                    }
-                }
-                "--since" -> {
-                    if (i + 1 < args.size && !args[i + 1].startsWith("-")) {
-                        since = args[i + 1]
-                        i += 2
-                    } else {
-                        i++
-                    }
-                }
-                "--oneline" -> {
-                    oneline = true
-                    i++
-                }
-                "--file", "-f" -> {
-                    showFiles = true
-                    if (i + 1 < args.size && !args[i + 1].startsWith("-")) {
-                        targetFile = args[i + 1]
-                        i += 2
-                    } else {
-                        i++
-                    }
-                }
-                else -> i++
-            }
-        }
-        
-        return LogOptions(maxCount, since, oneline, showFiles, targetFile)
-    }
-    
+
     private fun generateLog(repo: Repository, options: LogOptions): String {
         val timelineFile = repo.path.resolve("${Repository.NOTEVC_DIR}/timeline.json")
         

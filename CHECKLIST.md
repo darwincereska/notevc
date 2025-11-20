@@ -91,9 +91,9 @@
 # Utilities and Polish
 
 - [x] Add colored output for better UX
-- [ ] Implement proper error handling messages
-- [ ] Add input validation for all commands
-- [ ] Create help system (`notevc --help`)
+- [x] Implement proper error handling messages
+- [x] Add input validation for all commands
+- [x] Create help system (`notevc --help`)
 - [x] Add version information (`notevc --version`)
 - [ ] Implement configuration file support
 

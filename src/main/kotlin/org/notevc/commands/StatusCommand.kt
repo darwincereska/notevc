@@ -5,21 +5,23 @@ import org.notevc.utils.FileUtils
 import org.notevc.utils.ColorUtils
 import org.notevc.core.Repository.Companion.NOTEVC_DIR
 import java.time.Instant
+import org.kargs.Subcommand
 
-class StatusCommand {
-    fun execute(): Result<String> {
-        return try {
-            val repo = Repository.find()
-                ?: return Result.failure(Exception("Not in notevc repository. Run `notevc init` first."))
+class StatusCommand : Subcommand("status", description = "Show status of tracked files", aliases = listOf("st")) {
+    override fun execute() {
+        val result: Result<String> = runCatching {
+            try {
+                val repo = Repository.find() ?: throw Exception("Note in notevc repository. Run `notevc init` first.")
 
-            val status = getRepositoryStatus(repo)
-            val output = formatStatusOutput(status)
-
-            Result.success(output)
+                val status = getRepositoryStatus(repo)
+                formatStatusOutput(status)
+            } catch (e: Exception) {
+                throw e
+            }
         }
-        catch (e: Exception) {
-            Result.failure(e)
-        }
+
+        result.onSuccess { output -> println(output) }
+        result.onFailure { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
     }
 
     private fun getRepositoryStatus(repo: Repository): RepositoryStatus {
