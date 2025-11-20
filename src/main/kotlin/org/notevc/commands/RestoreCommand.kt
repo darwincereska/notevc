@@ -6,67 +6,36 @@ import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.time.Instant
 import kotlin.io.path.*
+import org.kargs.*
 
-class RestoreCommand {
+class RestoreCommand : Subcommand("restore", description = "Restore files or blocks from a specific commit") {
+    val blockHash by Option(ArgType.String, longName = "block", shortName = "b", description = "Restore specific block only")
+    val commitHash by Argument(ArgType.String, name = "commit-hash", description = "Commit to restore from", required = true)
+    val targetFile by Argument(ArgType.writableFile(), name = "file", description = "Specific file to restore to", required = false)
 
-    fun execute(args: List<String>): Result<String> {
-        return try {
-            val options = parseArgs(args)
+    override fun execute() {
+        val result: Result<String> = runCatching {
+            val options = RestoreOptions(commitHash!!, blockHash, targetFile?.toString())
 
-            if (options.commitHash.isBlank()) {
-                return Result.failure(Exception("Commit hash is required"))
-            }
+            val repo = Repository.find() ?: throw Exception("Not in a notevc repository. Run `notevc init` first.")
 
-            val repo = Repository.find()
-            ?: return Result.failure(Exception("Not in a notevc repository. Run 'notevc init' first."))
-
-            val result = when {
+            when {
                 options.blockHash != null && options.targetFile != null -> {
-                    restoreSpecificBlock(repo, options.commitHash, options.blockHash, options.targetFile)
+                    restoreSpecificBlock(repo, options.blockHash, options.blockHash, options.targetFile)
                 }
+
                 options.targetFile != null -> {
                     restoreSpecificFile(repo, options.commitHash, options.targetFile)
                 }
+
                 else -> {
                     restoreEntireRepository(repo, options.commitHash)
                 }
             }
-
-            Result.success(result)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    private fun parseArgs(args: List<String>): RestoreOptions {
-        if (args.isEmpty()) {
-            return RestoreOptions("", null, null)
         }
 
-        val commitHash = args[0]
-        var blockHash: String? = null
-        var targetFile: String? = null
-
-        var i = 1
-        while (i < args.size) {
-            when (args[i]) {
-                "--block", "-b" -> {
-                    if (i + 1 < args.size) {
-                        blockHash = args[i + 1]
-                        i += 2
-                    } else {
-                        i++
-                    }
-                }
-                else -> {
-                    // Assume it's the target file
-                    targetFile = args[i]
-                    i++
-                }
-            }
-        }
-
-        return RestoreOptions(commitHash, blockHash, targetFile)
+        result.onSuccess { message -> println(message) }
+        result.onFailure { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
     }
 
     private fun restoreSpecificBlock(repo: Repository, commitHash: String, blockHash: String, targetFile: String): String {

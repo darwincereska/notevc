@@ -6,80 +6,54 @@ import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.time.Instant
 import kotlin.io.path.*
+import org.kargs.*
 
-class DiffCommand {
+class DiffCommand : Subcommand("diff", description = "Show differences between commits or working directory") {
+    val commitHash1 by Argument(ArgType.String, name = "commit1", description = "First commit", required = false)
+    val commitHash2 by Argument(ArgType.String, name = "commit2", description = "Second commit", required = false)
+    val targetFile by Option(ArgType.readableFile(), longName = "file", shortName = "f", description = "Show diff for specific file only") 
+    val blockHash by Option(ArgType.String, longName = "block", shortName = "b", description = "Compare specific block only")
 
-    fun execute(args: List<String>): Result<String> {
-        return try {
-            val options = parseArgs(args)
+    override fun execute() {
+        val result: Result<String> = runCatching {
+            val repo = Repository.find() ?: throw Exception("Not in a notevc repository. Run `notevc init` first.")
 
-            val repo = Repository.find()
-                ?: return Result.failure(Exception("Not in a notevc repository. Run 'notevc init' first."))
-
-            val result = when {
-                options.blockHash != null -> {
-                    // Compare specific block
-                    compareSpecificBlock(repo, options.commitHash1, options.blockHash, options.targetFile)
+            when {
+                blockHash != null && commitHash1 != null -> {
+                    // Compare specific block to commit
+                    if (targetFile == null) {
+                        throw Exception("--file is required when using --block option")
+                    }
+                    compareSpecificBlock(repo, commitHash1, blockHash!!, targetFile!!.toString())
                 }
-                options.commitHash1 != null && options.commitHash2 != null -> {
+
+                blockHash != null -> {
+                    // Compare specific block in working directory
+                    if (targetFile == null) {
+                        throw Exception("--file is required when using --block option")
+                    }
+                    compareSpecificBlock(repo, null, blockHash!!, targetFile!!.toString())
+                }
+
+                commitHash1 != null && commitHash2 != null -> {
                     // Compare two commits
-                    compareCommits(repo, options.commitHash1, options.commitHash2, options.targetFile)
+                    compareCommits(repo, commitHash1!!, commitHash2!!, targetFile?.toString())
                 }
-                options.commitHash1 != null -> {
+
+                commitHash1 != null -> {
                     // Compare working directory to a commit
-                    compareWorkingDirectoryToCommit(repo, options.commitHash1, options.targetFile)
+                    compareWorkingDirectoryToCommit(repo, commitHash1!!, targetFile?.toString())
                 }
+
                 else -> {
                     // Show changes in working directory (not committed)
-                    showWorkingDirectoryChanges(repo, options.targetFile)
+                    showWorkingDirectoryChanges(repo, targetFile?.toString())
                 }
-            }
-
-            Result.success(result)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    private fun parseArgs(args: List<String>): DiffOptions {
-        var commitHash1: String? = null
-        var commitHash2: String? = null
-        var targetFile: String? = null
-        var blockHash: String? = null
-
-        var i = 0
-        while (i < args.size) {
-            when {
-                args[i].startsWith("--file=") -> {
-                    targetFile = args[i].substring(7)
-                    i++
-                }
-                args[i] == "--file" && i + 1 < args.size -> {
-                    targetFile = args[i + 1]
-                    i += 2
-                }
-                args[i] == "--block" || args[i] == "-b" -> {
-                    if (i + 1 < args.size && !args[i + 1].startsWith("-")) {
-                        blockHash = args[i + 1]
-                        i += 2
-                    } else {
-                        i++
-                    }
-                }
-                !args[i].startsWith("-") -> {
-                    // This is a commit hash
-                    if (commitHash1 == null) {
-                        commitHash1 = args[i]
-                    } else if (commitHash2 == null) {
-                        commitHash2 = args[i]
-                    }
-                    i++
-                }
-                else -> i++
             }
         }
 
-        return DiffOptions(commitHash1, commitHash2, targetFile, blockHash)
+        result.onSuccess { message -> println(message) }
+        result.onFailure { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
     }
 
     private fun compareSpecificBlock(repo: Repository, commitHash: String?, blockHash: String, targetFile: String?): String {

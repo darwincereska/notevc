@@ -9,49 +9,28 @@ import java.nio.file.Files
 import java.time.Instant
 import org.notevc.utils.ColorUtils
 import kotlin.io.path.*
+import org.kargs.Subcommand
+import org.kargs.ArgType
+import org.kargs.Option
+import org.kargs.Argument
 
-class CommitCommand {
-    
-    fun execute(args: List<String>): Result<String> {
-        return try {
-            val (targetFile, message) = parseArgs(args)
-            
-            if (message.isBlank()) {
-                return Result.failure(Exception("Commit message cannot be empty"))
-            }
-            
-            val repo = Repository.find()
-                ?: return Result.failure(Exception("Not in a notevc repository. Run 'notevc init' first."))
-            
-            val commitResult = if (targetFile != null) {
-                createSingleFileCommit(repo, targetFile, message)
+class CommitCommand : Subcommand("commit", description = "Create a commit of changed files") {
+    val targetFile by Option(ArgType.readableFile(), longName = "file", shortName = "f", description = "Commit only a specific file")
+    val message by Argument(ArgType.String, name = "message", description = "Message for commit", required = true)
+
+    override fun execute() {
+        val result: Result<String> = runCatching {
+            val repo = Repository.find() ?: throw Exception("Not in a notevc repository. Run `notevc init` first.")
+
+            if (targetFile != null) {
+                createSingleFileCommit(repo, targetFile.toString(), message!!)
             } else {
-                createChangedFilesCommit(repo, message)
+                createChangedFilesCommit(repo, message!!)
             }
-            
-            Result.success(commitResult)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
-    }
-    
-    private fun parseArgs(args: List<String>): Pair<String?, String> {
-        if (args.isEmpty()) {
-            return null to ""
-        }
-        
-        // Check for --file flag
-        val fileIndex = args.indexOf("--file")
-        if (fileIndex != -1 && fileIndex + 1 < args.size) {
-            val targetFile = args[fileIndex + 1]
-            val messageArgs = args.filterIndexed { index, _ -> 
-                index != fileIndex && index != fileIndex + 1 
-            }
-            return targetFile to messageArgs.joinToString(" ")
-        }
-        
-        // No --file flag, all args are the message
-        return null to args.joinToString(" ")
+
+        result.onSuccess { message -> println(message) }
+        result.onFailure { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
     }
     
     private fun createSingleFileCommit(repo: Repository, targetFile: String, message: String): String {
@@ -66,7 +45,7 @@ class CommitCommand {
             throw Exception("File not found: $targetFile")
         }
         
-        if (!targetFile.endsWith(".md")) {
+        if (!targetFile.toString().endsWith(".md")) {
             throw Exception("Only markdown files (.md) are supported")
         }
         
