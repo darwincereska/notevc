@@ -1,7 +1,6 @@
 package org.notevc.commands
 
 import org.notevc.core.*
-import org.notevc.utils.ColorUtils
 import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.time.Instant
@@ -53,7 +52,7 @@ class DiffCommand : Subcommand("diff", description = "Show differences between c
         }
 
         result.onSuccess { message -> println(message) }
-        result.onFailure { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
+        result.onFailure { error -> println("${Colors.error("Error:")} ${error.message}") }
     }
 
     private fun compareSpecificBlock(repo: Repository, commitHash: String?, blockHash: String, targetFile: String?): String {
@@ -66,13 +65,13 @@ class DiffCommand : Subcommand("diff", description = "Show differences between c
         }
 
         val result = StringBuilder()
-        result.appendLine("${ColorUtils.bold("Block comparison:")} ${ColorUtils.hash(blockHash.take(8))}")
+        result.appendLine("${Colors.bold("Block comparison:")} ${Colors.yellow(blockHash.take(8))}")
         result.appendLine()
 
         // Get the commit snapshot if provided, otherwise use latest
         val commitSnapshot = if (commitHash != null) {
             val commit = findCommit(repo, commitHash)
-                ?: throw Exception("Commit ${ColorUtils.hash(commitHash)} not found")
+                ?: throw Exception("Commit ${Colors.yellow(commitHash)} not found")
             val commitTime = Instant.parse(commit.timestamp)
             blockStore.getLatestBlockSnapshotBefore(targetFile, commitTime)
         } else {
@@ -94,41 +93,41 @@ class DiffCommand : Subcommand("diff", description = "Show differences between c
         val newBlock = currentSnapshot.blocks.find { it.id.startsWith(blockHash) }
 
         if (oldBlock == null && newBlock == null) {
-            throw Exception("Block ${ColorUtils.hash(blockHash)} not found")
+            throw Exception("Block ${Colors.yellow(blockHash)} not found")
         }
 
         val headingText = (newBlock?.heading ?: oldBlock?.heading ?: "").replace(Regex("^#+\\s*"), "").trim()
         
-        result.appendLine("${ColorUtils.heading(headingText)} ${ColorUtils.dim("[${blockHash.take(8)}]")}")
-        result.appendLine("${ColorUtils.dim("─".repeat(70))}")
+        result.appendLine("${Colors.heading(headingText)} ${Colors.dim("[${blockHash.take(8)}]")}")
+        result.appendLine(Colors.dim("─".repeat(70)))
         result.appendLine()
 
         when {
             oldBlock == null && newBlock != null -> {
-                result.appendLine("${ColorUtils.success("This block was ADDED")}")
+                result.appendLine(Colors.green("This block was ADDED"))
                 result.appendLine()
                 val newContent = objectStore.getContent(newBlock.contentHash)
                 if (newContent != null) {
                     newContent.lines().forEach { line ->
-                        result.appendLine("${ColorUtils.success("+ ")} $line")
+                        result.appendLine("${Colors.green("+ ")} $line")
                     }
                 }
             }
             oldBlock != null && newBlock == null -> {
-                result.appendLine("${ColorUtils.error("This block was DELETED")}")
+                result.appendLine(Colors.error("This block was DELETED"))
                 result.appendLine()
                 val oldContent = objectStore.getContent(oldBlock.contentHash)
                 if (oldContent != null) {
                     oldContent.lines().forEach { line ->
-                        result.appendLine("${ColorUtils.error("- ")} $line")
+                        result.appendLine("${Colors.error("- ")} $line")
                     }
                 }
             }
             oldBlock != null && newBlock != null -> {
                 if (oldBlock.contentHash == newBlock.contentHash) {
-                    result.appendLine("${ColorUtils.dim("No changes")}")
+                    result.appendLine(Colors.dim("No changes"))
                 } else {
-                    result.appendLine("${ColorUtils.warning("Block was MODIFIED")}")
+                    result.appendLine(Colors.warn("Block was MODIFIED"))
                     result.appendLine()
                     val oldContent = objectStore.getContent(oldBlock.contentHash)
                     val newContent = objectStore.getContent(newBlock.contentHash)
@@ -152,9 +151,9 @@ class DiffCommand : Subcommand("diff", description = "Show differences between c
 
         // Find commits
         val commit1 = findCommit(repo, hash1)
-            ?: throw Exception("Commit ${ColorUtils.hash(hash1)} not found")
+            ?: throw Exception("Commit ${Colors.yellow(hash1)} not found")
         val commit2 = findCommit(repo, hash2)
-            ?: throw Exception("Commit ${ColorUtils.hash(hash2)} not found")
+            ?: throw Exception("Commit ${Colors.yellow(hash2)} not found")
 
         val time1 = Instant.parse(commit1.timestamp)
         val time2 = Instant.parse(commit2.timestamp)
@@ -170,9 +169,9 @@ class DiffCommand : Subcommand("diff", description = "Show differences between c
         }
 
         val result = StringBuilder()
-        result.appendLine("${ColorUtils.bold("Comparing commits:")}")
-        result.appendLine("  ${ColorUtils.hash(hash1.take(8))} ${ColorUtils.dim(commit1.message)}")
-        result.appendLine("  ${ColorUtils.hash(hash2.take(8))} ${ColorUtils.dim(commit2.message)}")
+        result.appendLine(Colors.bold("Comparing commits:"))
+        result.appendLine("  ${Colors.yellow(hash1.take(8))} ${Colors.dim(commit1.message)}")
+        result.appendLine("  ${Colors.yellow(hash2.take(8))} ${Colors.dim(commit2.message)}")
         result.appendLine()
 
         var totalChanges = 0
@@ -184,7 +183,7 @@ class DiffCommand : Subcommand("diff", description = "Show differences between c
             if (snapshot1 != null || snapshot2 != null) {
                 val changes = blockStore.compareBlocks(snapshot1, snapshot2)
                 if (changes.isNotEmpty()) {
-                    result.appendLine("${ColorUtils.filename(filePath)}:")
+                    result.appendLine("${Colors.filename(filePath)}:")
                     result.append(formatBlockChanges(changes, objectStore))
                     result.appendLine()
                     totalChanges += changes.size
@@ -193,9 +192,9 @@ class DiffCommand : Subcommand("diff", description = "Show differences between c
         }
 
         if (totalChanges == 0) {
-            result.appendLine("${ColorUtils.dim("No differences found")}")
+            result.appendLine(Colors.dim("No differences found"))
         } else {
-            result.appendLine("${ColorUtils.bold("Total changes:")} $totalChanges")
+            result.appendLine("${Colors.bold("Total changes:")} $totalChanges")
         }
 
         return result.toString()
@@ -208,7 +207,7 @@ class DiffCommand : Subcommand("diff", description = "Show differences between c
 
         // Find commit
         val commit = findCommit(repo, hash)
-            ?: throw Exception("Commit ${ColorUtils.hash(hash)} not found")
+            ?: throw Exception("Commit ${Colors.yellow(hash)} not found")
 
         val commitTime = Instant.parse(commit.timestamp)
 
@@ -225,8 +224,8 @@ class DiffCommand : Subcommand("diff", description = "Show differences between c
         }
 
         val result = StringBuilder()
-        result.appendLine("${ColorUtils.bold("Comparing working directory to commit:")}")
-        result.appendLine("  ${ColorUtils.hash(hash.take(8))} ${ColorUtils.dim(commit.message)}")
+        result.appendLine(Colors.bold("Comparing working directory to commit:"))
+        result.appendLine("  ${Colors.yellow(hash.take(8))} ${Colors.lightGray(commit.message)}")
         result.appendLine()
 
         var totalChanges = 0
@@ -247,7 +246,7 @@ class DiffCommand : Subcommand("diff", description = "Show differences between c
 
                 val changes = blockStore.compareBlocks(commitSnapshot, currentSnapshot)
                 if (changes.isNotEmpty()) {
-                    result.appendLine("${ColorUtils.filename(filePath)}:")
+                    result.appendLine("${Colors.filename(filePath)}:")
                     result.append(formatBlockChanges(changes, objectStore))
                     result.appendLine()
                     totalChanges += changes.size
@@ -256,9 +255,9 @@ class DiffCommand : Subcommand("diff", description = "Show differences between c
         }
 
         if (totalChanges == 0) {
-            result.appendLine("${ColorUtils.dim("No differences found")}")
+            result.appendLine(Colors.dim("No differences found"))
         } else {
-            result.appendLine("${ColorUtils.bold("Total changes:")} $totalChanges")
+            result.appendLine("${Colors.bold("Total changes:")} $totalChanges")
         }
 
         return result.toString()
@@ -282,7 +281,7 @@ class DiffCommand : Subcommand("diff", description = "Show differences between c
         }
 
         val result = StringBuilder()
-        result.appendLine("${ColorUtils.bold("Changes in working directory:")}")
+        result.appendLine(Colors.bold("Changes in working directory:"))
         result.appendLine()
 
         var totalChanges = 0
@@ -294,16 +293,14 @@ class DiffCommand : Subcommand("diff", description = "Show differences between c
                 val parsedFile = blockParser.parseFile(content, filePath)
 
                 // Skip disabled files
-                if (parsedFile.frontMatter?.isEnabled == false) {
-                    return@forEach
-                }
+                if (parsedFile.frontMatter?.isEnabled == false) return@forEach
 
                 val latestSnapshot = blockStore.getLatestBlockSnapshot(filePath)
                 val currentSnapshot = createCurrentSnapshot(parsedFile, objectStore)
 
                 val changes = blockStore.compareBlocks(latestSnapshot, currentSnapshot)
                 if (changes.isNotEmpty()) {
-                    result.appendLine("${ColorUtils.filename(filePath)}:")
+                    result.appendLine("${Colors.filename(filePath)}:")
                     result.append(formatBlockChanges(changes, objectStore))
                     result.appendLine()
                     totalChanges += changes.size
@@ -312,9 +309,9 @@ class DiffCommand : Subcommand("diff", description = "Show differences between c
         }
 
         if (totalChanges == 0) {
-            result.appendLine("${ColorUtils.dim("No changes detected - working directory clean")}")
+            result.appendLine(Colors.lightGray("No changes detected - working directory clean"))
         } else {
-            result.appendLine("${ColorUtils.bold("Total changes:")} $totalChanges")
+            result.appendLine("${Colors.bold("Total changes:")} $totalChanges")
         }
 
         return result.toString()
@@ -330,42 +327,42 @@ class DiffCommand : Subcommand("diff", description = "Show differences between c
             when (change.type) {
                 BlockChangeType.ADDED -> {
                     result.appendLine()
-                    result.appendLine("  ${ColorUtils.success("+++")} ${ColorUtils.bold("ADDED")} ${ColorUtils.success("+++")} ${ColorUtils.heading(headingText)} ${ColorUtils.dim("[$blockId]")}")
-                    result.appendLine("  ${ColorUtils.dim("─".repeat(60))}")
+                    result.appendLine("  ${Colors.green("+++")} ${Colors.bold("ADDED")} ${Colors.green("+++")} ${Colors.heading(headingText)} ${Colors.dim("[$blockId]")}")
+                    result.appendLine("  ${Colors.dim("─".repeat(60))}")
                     
                     if (change.newHash != null) {
                         val content = objectStore.getContent(change.newHash)
                         if (content != null) {
                             content.lines().take(5).forEach { line ->
-                                result.appendLine("  ${ColorUtils.success("+")} $line")
+                                result.appendLine("  ${Colors.green("+")} $line")
                             }
                             if (content.lines().size > 5) {
-                                result.appendLine("  ${ColorUtils.dim("  ... ${content.lines().size - 5} more lines")}")
+                                result.appendLine("  ${Colors.dim("  ... ${content.lines().size - 5} more lines")}")
                             }
                         }
                     }
                 }
                 BlockChangeType.DELETED -> {
                     result.appendLine()
-                    result.appendLine("  ${ColorUtils.error("---")} ${ColorUtils.bold("DELETED")} ${ColorUtils.error("---")} ${ColorUtils.heading(headingText)} ${ColorUtils.dim("[$blockId]")}")
-                    result.appendLine("  ${ColorUtils.dim("─".repeat(60))}")
+                    result.appendLine("  ${Colors.error("---")} ${Colors.bold("DELETED")} ${Colors.error("---")} ${Colors.heading(headingText)} ${Colors.dim("[$blockId]")}")
+                    result.appendLine("  ${Colors.dim("─".repeat(60))}")
                     
                     if (change.oldHash != null) {
                         val content = objectStore.getContent(change.oldHash)
                         if (content != null) {
                             content.lines().take(5).forEach { line ->
-                                result.appendLine("  ${ColorUtils.error("-")} $line")
+                                result.appendLine("  ${Colors.error("-")} $line")
                             }
                             if (content.lines().size > 5) {
-                                result.appendLine("  ${ColorUtils.dim("  ... ${content.lines().size - 5} more lines")}")
+                                result.appendLine("  ${Colors.dim("  ... ${content.lines().size - 5} more lines")}")
                             }
                         }
                     }
                 }
                 BlockChangeType.MODIFIED -> {
                     result.appendLine()
-                    result.appendLine("  ${ColorUtils.warning("~~~")} ${ColorUtils.bold("MODIFIED")} ${ColorUtils.warning("~~~")} ${ColorUtils.heading(headingText)} ${ColorUtils.dim("[$blockId]")}")
-                    result.appendLine("  ${ColorUtils.dim("─".repeat(60))}")
+                    result.appendLine("  ${Colors.warn("~~~")} ${Colors.bold("MODIFIED")} ${Colors.warn("~~~")} ${Colors.heading(headingText)} ${Colors.dim("[$blockId]")}")
+                    result.appendLine("  ${Colors.dim("─".repeat(60))}")
                     
                     // Show detailed diff
                     if (change.oldHash != null && change.newHash != null) {
@@ -405,27 +402,27 @@ class DiffCommand : Subcommand("diff", description = "Show differences between c
             when {
                 oldLine == null && newLine != null -> {
                     // Addition
-                    diff.add("${ColorUtils.success("+ ")} $newLine")
+                    diff.add("${Colors.green("+ ")} $newLine")
                     newIndex++
                     displayedLines++
                 }
                 oldLine != null && newLine == null -> {
                     // Deletion
-                    diff.add("${ColorUtils.error("- ")} $oldLine")
+                    diff.add("${Colors.boldRed("- ")} $oldLine")
                     oldIndex++
                     displayedLines++
                 }
                 oldLine == newLine -> {
                     // Unchanged line (context)
-                    diff.add("${ColorUtils.dim("  ")} ${ColorUtils.dim(oldLine ?: "")}")
+                    diff.add("${Colors.dim("  ")} ${Colors.dimWhite(oldLine ?: "")}")
                     oldIndex++
                     newIndex++
                     displayedLines++
                 }
                 else -> {
                     // Modified line
-                    diff.add("${ColorUtils.error("- ")} $oldLine")
-                    diff.add("${ColorUtils.success("+ ")} $newLine")
+                    diff.add("${Colors.boldRed("- ")} $oldLine")
+                    diff.add("${Colors.green("+ ")} $newLine")
                     oldIndex++
                     newIndex++
                     displayedLines += 2
@@ -435,7 +432,7 @@ class DiffCommand : Subcommand("diff", description = "Show differences between c
         
         val remainingLines = (oldLines.size - oldIndex) + (newLines.size - newIndex)
         if (remainingLines > 0) {
-            diff.add("${ColorUtils.dim("  ... $remainingLines more lines")}")
+            diff.add(Colors.dim("  ... $remainingLines more lines"))
         }
         
         return diff

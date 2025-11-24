@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "org.notevc"
-version = "1.0.7"
+version = "1.0.8"
 
 buildConfig {
     buildConfigField("String", "VERSION", "\"${project.version}\"")
@@ -26,7 +26,7 @@ dependencies {
     val junitVersion = "5.10.0"
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-    implementation("org.kargs:kargs:1.0.4")
+    implementation("org.kargs:kargs:1.0.8")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")

@@ -1,7 +1,6 @@
 package org.notevc.commands
 
 import org.notevc.core.*
-import org.notevc.utils.ColorUtils
 import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.time.Instant
@@ -35,7 +34,7 @@ class RestoreCommand : Subcommand("restore", description = "Restore files or blo
         }
 
         result.onSuccess { message -> println(message) }
-        result.onFailure { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
+        result.onFailure { error -> println("${Colors.error("Error:")} ${error.message}") }
     }
 
     private fun restoreSpecificBlock(repo: Repository, commitHash: String, blockHash: String, targetFile: String): String {
@@ -45,21 +44,21 @@ class RestoreCommand : Subcommand("restore", description = "Restore files or blo
 
         // Find the commit
         val commit = findCommit(repo, commitHash)
-        ?: throw Exception("Commit ${ColorUtils.hash(commitHash)} not found")
+        ?: throw Exception("Commit ${Colors.yellow(commitHash)} not found")
 
         // Find the block snapshot for this file at the commit time
         val commitTime = Instant.parse(commit.timestamp)
         val snapshot = blockStore.getBlocksAtTime(targetFile, commitTime)
-        ?: throw Exception("No snapshot found for ${ColorUtils.filename(targetFile)} at commit ${ColorUtils.hash(commitHash)}")
+        ?: throw Exception("No snapshot found for ${Colors.filename(targetFile)} at commit ${Colors.yellow(commitHash)}")
 
         // Find the specific block
         val targetBlock = snapshot.find { it.id.startsWith(blockHash) }
-        ?: throw Exception("Block ${ColorUtils.hash(blockHash)} not found in ${ColorUtils.filename(targetFile)} at commit ${ColorUtils.hash(commitHash)}")
+        ?: throw Exception("Block ${Colors.yellow(blockHash)} not found in ${Colors.filename(targetFile)} at commit ${Colors.yellow(commitHash)}")
 
         // Read current file
         val filePath = repo.path.resolve(targetFile)
         if (!filePath.exists()) {
-            throw Exception("File ${ColorUtils.filename(targetFile)} does not exist")
+            throw Exception("File ${Colors.filename(targetFile)} does not exist")
         }
 
         val currentContent = Files.readString(filePath)
@@ -68,7 +67,7 @@ class RestoreCommand : Subcommand("restore", description = "Restore files or blo
         // Find the block to replace in current file
         val currentBlockIndex = currentParsedFile.blocks.indexOfFirst { it.id.startsWith(blockHash) }
         if (currentBlockIndex == -1) {
-            throw Exception("Block ${ColorUtils.hash(blockHash)} not found in current ${ColorUtils.filename(targetFile)}")
+            throw Exception("Block ${Colors.yellow(blockHash)} not found in current ${Colors.filename(targetFile)}")
         }
 
         // Replace the block
@@ -82,7 +81,7 @@ class RestoreCommand : Subcommand("restore", description = "Restore files or blo
         Files.writeString(filePath, restoredContent)
 
         val blockHeading = targetBlock.heading.replace(Regex("^#+\\s*"), "").trim()
-        return "${ColorUtils.success("Restored block")} ${ColorUtils.hash(blockHash.take(8))} ${ColorUtils.heading("\"$blockHeading\"")} in ${ColorUtils.filename(targetFile)} from commit ${ColorUtils.hash(commitHash)}"
+        return "${Colors.success("Restored block")} ${Colors.yellow(blockHash.take(8))} ${Colors.heading("\"$blockHeading\"")} in ${Colors.filename(targetFile)} from commit ${Colors.yellow(commitHash)}"
     }
 
     private fun restoreSpecificFile(repo: Repository, commitHash: String, targetFile: String): String {
@@ -92,15 +91,15 @@ class RestoreCommand : Subcommand("restore", description = "Restore files or blo
 
         // Find the commit
         val commit = findCommit(repo, commitHash)
-        ?: throw Exception("Commit ${ColorUtils.hash(commitHash)} not found")
+        ?: throw Exception("Commit ${Colors.yellow(commitHash)} not found")
 
         // Find the block snapshot for this file at the commit time
         val commitTime = Instant.parse(commit.timestamp)
         val snapshot = blockStore.getLatestBlockSnapshotBefore(targetFile, commitTime)
-        ?: throw Exception("No snapshot found for ${ColorUtils.filename(targetFile)} at commit ${ColorUtils.hash(commitHash)}")
+        ?: throw Exception("No snapshot found for ${Colors.filename(targetFile)} at commit ${Colors.yellow(commitHash)}")
 
         val blocks = blockStore.getBlocksAtTime(targetFile, commitTime)
-        ?: throw Exception("No blocks found for ${ColorUtils.filename(targetFile)} at commit ${ColorUtils.hash(commitHash)}")
+        ?: throw Exception("No blocks found for ${Colors.filename(targetFile)} at commit ${Colors.yellow(commitHash)}")
 
         // Reconstruct the file from blocks with frontmatter from snapshot
         val parsedFile = ParsedFile(
@@ -116,7 +115,7 @@ class RestoreCommand : Subcommand("restore", description = "Restore files or blo
         Files.createDirectories(filePath.parent)
         Files.writeString(filePath, restoredContent)
 
-        return "${ColorUtils.success("Restored file")} ${ColorUtils.filename(targetFile)} ${ColorUtils.dim("(${blocks.size} blocks)")} from commit ${ColorUtils.hash(commitHash)}"
+        return "${Colors.success("Restored file")} ${Colors.filename(targetFile)} ${Colors.dim("(${blocks.size} blocks)")} from commit ${Colors.yellow(commitHash)}"
     }
 
     private fun restoreEntireRepository(repo: Repository, commitHash: String): String {
@@ -126,7 +125,7 @@ class RestoreCommand : Subcommand("restore", description = "Restore files or blo
 
         // Find the commit
         val commit = findCommit(repo, commitHash)
-        ?: throw Exception("Commit ${ColorUtils.hash(commitHash)} not found")
+        ?: throw Exception("Commit ${Colors.yellow(commitHash)} not found")
 
         val commitTime = Instant.parse(commit.timestamp)
 
@@ -134,7 +133,7 @@ class RestoreCommand : Subcommand("restore", description = "Restore files or blo
         val trackedFiles = getTrackedFilesAtCommit(repo, commitTime)
 
         if (trackedFiles.isEmpty()) {
-            throw Exception("No files found at commit ${ColorUtils.hash(commitHash)}")
+            throw Exception("No files found at commit ${Colors.yellow(commitHash)}")
         }
 
         var restoredFiles = 0
@@ -162,10 +161,10 @@ class RestoreCommand : Subcommand("restore", description = "Restore files or blo
         }
 
         return buildString {
-            appendLine("${ColorUtils.success("Restored repository")} to commit ${ColorUtils.hash(commitHash)}")
-            appendLine("${ColorUtils.bold("Files restored:")} $restoredFiles")
-            appendLine("${ColorUtils.bold("Total blocks:")} $totalBlocks")
-            appendLine("${ColorUtils.bold("Commit message:")} ${commit.message}")
+            appendLine("${Colors.success("Restored repository")} to commit ${Colors.yellow(commitHash)}")
+            appendLine("${Colors.bold("Files restored:")} $restoredFiles")
+            appendLine("${Colors.bold("Total blocks:")} $totalBlocks")
+            appendLine("${Colors.bold("Commit message:")} ${commit.message}")
         }
     }
 

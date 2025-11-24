@@ -2,10 +2,7 @@ package org.notevc.commands
 
 import org.notevc.core.Repository
 import java.nio.file.Path
-import org.notevc.utils.ColorUtils
-import org.kargs.Subcommand
-import org.kargs.Argument
-import org.kargs.ArgType
+import org.kargs.*
 
 class InitCommand : Subcommand("init", description = "Initialize a repository", aliases = listOf("i")) {
     val path by Argument(ArgType.existingDirectory(), "path", description = "Initialize in a specified directory", required = false)
@@ -19,13 +16,13 @@ class InitCommand : Subcommand("init", description = "Initialize a repository", 
             repo.init().fold(
                 onSuccess = {
                     val absolutePath = repo.path.toAbsolutePath().toString()
-                    "Initialized notevc repository in ${ColorUtils.filename(absolutePath)}"
+                    "Initialized notevc repository in ${Colors.filename(absolutePath)}"
                 },
                 onFailure = { error -> throw Exception(error) }
             )
         }
 
         result.onSuccess { message -> println(message) }
-        result.onFailure { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
+        result.onFailure { error -> println("${Colors.error("Error:")} ${error.message}") }
     }
 }

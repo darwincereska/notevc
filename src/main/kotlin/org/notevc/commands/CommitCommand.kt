@@ -7,12 +7,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.time.Instant
-import org.notevc.utils.ColorUtils
 import kotlin.io.path.*
-import org.kargs.Subcommand
-import org.kargs.ArgType
-import org.kargs.Option
-import org.kargs.Argument
+import org.kargs.*
 
 class CommitCommand : Subcommand("commit", description = "Create a commit of changed files") {
     val targetFile by Option(ArgType.readableFile(), longName = "file", shortName = "f", description = "Commit only a specific file")
@@ -30,7 +26,7 @@ class CommitCommand : Subcommand("commit", description = "Create a commit of cha
         }
 
         result.onSuccess { message -> println(message) }
-        result.onFailure { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
+        result.onFailure { error -> println("${Colors.error("Error:")} ${error.message}") }
     }
     
     private fun createSingleFileCommit(repo: Repository, targetFile: String, message: String): String {
@@ -77,9 +73,9 @@ class CommitCommand : Subcommand("commit", description = "Create a commit of cha
         updateRepositoryHead(repo, commitHash, timestamp, message)
         
         return buildString {
-            appendLine("${ColorUtils.success("Created commit")} ${ColorUtils.hash(commitHash)}")
-            appendLine("${ColorUtils.bold("Message:")} $message")
-            appendLine("${ColorUtils.bold("File:")} ${ColorUtils.filename(relativePath)} ${ColorUtils.dim("(${snapshot.blocks.size} blocks)")}")
+            appendLine("${Colors.success("Created commit")} ${Colors.yellow(commitHash)}")
+            appendLine("${Colors.bold("Message:")} $message")
+            appendLine("${Colors.bold("File:")} ${Colors.filename(relativePath)} ${Colors.dim("(${snapshot.blocks.size} blocks)")}")
         }
     }
     
@@ -140,16 +136,16 @@ class CommitCommand : Subcommand("commit", description = "Create a commit of cha
         updateRepositoryHead(repo, commitHash, timestamp, message)
         
         return buildString {
-            appendLine("${ColorUtils.success("Created commit")} ${ColorUtils.hash(commitHash)}")
-            appendLine("${ColorUtils.bold("Message:")} $message")
-            appendLine("${ColorUtils.bold("Files committed:")} ${changedFiles.size}")
-            appendLine("${ColorUtils.bold("Total blocks:")} $totalBlocksStored")
+            appendLine("${Colors.success("Created commit")} ${Colors.yellow(commitHash)}")
+            appendLine("${Colors.bold("Message:")} $message")
+            appendLine("${Colors.bold("Files committed:")} ${changedFiles.size}")
+            appendLine("${Colors.bold("Total blocks:")} $totalBlocksStored")
             appendLine()
             changedFiles.forEach { fileInfo ->
                 val parts = fileInfo.split(" (")
                 val filename = parts[0]
                 val blockInfo = if (parts.size > 1) " (${parts[1]}" else ""
-                appendLine("  ${ColorUtils.filename(filename)}${ColorUtils.dim(blockInfo)}")
+                appendLine("  ${Colors.filename(filename)}${Colors.dim(blockInfo)}")
             }
         }
     }

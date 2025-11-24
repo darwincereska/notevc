@@ -2,10 +2,9 @@ package org.notevc.commands
 
 import org.notevc.core.*
 import org.notevc.utils.FileUtils
-import org.notevc.utils.ColorUtils
 import org.notevc.core.Repository.Companion.NOTEVC_DIR
 import java.time.Instant
-import org.kargs.Subcommand
+import org.kargs.*
 
 class StatusCommand : Subcommand("status", description = "Show status of tracked files", aliases = listOf("st")) {
     override fun execute() {
@@ -21,7 +20,7 @@ class StatusCommand : Subcommand("status", description = "Show status of tracked
         }
 
         result.onSuccess { output -> println(output) }
-        result.onFailure { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
+        result.onFailure { error -> println("${Colors.error("Error:")} ${error.message}") }
     }
 
     private fun getRepositoryStatus(repo: Repository): RepositoryStatus {
@@ -111,35 +110,35 @@ class StatusCommand : Subcommand("status", description = "Show status of tracked
 
         // Modified files
         grouped[FileStatusType.MODIFIED]?.let { modifiedFiles -> 
-            output.appendLine(ColorUtils.bold("Modified files:"))
+            output.appendLine(Colors.bold("Modified files:"))
             modifiedFiles.forEach { fileStatus -> 
-                output.appendLine("  ${ColorUtils.filename(fileStatus.path)}")
+                output.appendLine("  ${Colors.filename(fileStatus.path)}")
                 fileStatus.blockChanges?.forEach { change -> 
                     val symbol = when (change.type) {
-                        BlockChangeType.MODIFIED -> ColorUtils.modified("~") 
-                        BlockChangeType.ADDED -> ColorUtils.added("+")
-                        BlockChangeType.DELETED -> ColorUtils.deleted("-")
+                        BlockChangeType.MODIFIED -> Colors.boldYellow("~") 
+                        BlockChangeType.ADDED -> Colors.boldGreen("+")
+                        BlockChangeType.DELETED -> Colors.boldRed("-")
                     }
                     val heading = change.heading.replace(Regex("^#+\\s*"), "").trim()
-                    output.appendLine("    $symbol ${ColorUtils.heading(heading)}")
+                    output.appendLine("    $symbol ${Colors.heading(heading)}")
                 }
             }
         }
 
         // Untracked files
         grouped[FileStatusType.UNTRACKED]?.let { untrackedFiles -> 
-            output.appendLine(ColorUtils.bold("Untracked files:"))
+            output.appendLine(Colors.bold("Untracked files:"))
             untrackedFiles.forEach { fileStatus -> 
-                output.appendLine("  ${ColorUtils.untracked(fileStatus.path)} ${ColorUtils.dim("(${fileStatus.blockCount} blocks)")}")
+                output.appendLine("  ${Colors.dimWhite(fileStatus.path)} ${Colors.dim("(${fileStatus.blockCount} blocks)")}")
             }
             output.appendLine()
         }
 
         // Deleted files
         grouped[FileStatusType.DELETED]?.let { deletedFiles -> 
-            output.appendLine(ColorUtils.bold("Deleted files:"))
+            output.appendLine(Colors.bold("Deleted files:"))
             deletedFiles.forEach { fileStatus -> 
-                output.appendLine("  ${ColorUtils.deleted(fileStatus.path)}")
+                output.appendLine("  ${Colors.boldRed(fileStatus.path)}")
             }
             output.appendLine()
         }

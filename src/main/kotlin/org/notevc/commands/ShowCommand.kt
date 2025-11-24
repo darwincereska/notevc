@@ -1,7 +1,6 @@
 package org.notevc.commands
 
 import org.notevc.core.*
-import org.notevc.utils.ColorUtils
 import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.time.Instant
@@ -30,7 +29,7 @@ class ShowCommand : Subcommand("show", description = "Show detailed information 
         }
 
         result.onSuccess { message -> println(message) }
-        result.onFailure { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
+        result.onFailure { error -> println("${Colors.error("Error:")} ${error.message}") }
     }
 
     private fun showCommit(repo: Repository, commitHash: String, targetFile: String?): String {
@@ -39,7 +38,7 @@ class ShowCommand : Subcommand("show", description = "Show detailed information 
 
         // Find the commit
         val commit = findCommit(repo, commitHash)
-            ?: throw Exception("Commit ${ColorUtils.hash(commitHash)} not found")
+            ?: throw Exception("Commit ${Colors.yellow(commitHash)} not found")
 
         val commitTime = Instant.parse(commit.timestamp)
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -48,11 +47,11 @@ class ShowCommand : Subcommand("show", description = "Show detailed information 
         val result = StringBuilder()
 
         // Show commit header
-        result.appendLine("${ColorUtils.bold("Commit:")} ${ColorUtils.hash(commit.hash)}")
-        result.appendLine("${ColorUtils.bold("Author:")} ${commit.author}")
-        result.appendLine("${ColorUtils.bold("Date:")} ${formatter.format(commitTime)}")
+        result.appendLine("${Colors.bold("Commit:")} ${Colors.yellow(commit.hash)}")
+        result.appendLine("${Colors.bold("Author:")} ${commit.author}")
+        result.appendLine("${Colors.bold("Date:")} ${formatter.format(commitTime)}")
         if (commit.parent != null) {
-            result.appendLine("${ColorUtils.bold("Parent:")} ${ColorUtils.hash(commit.parent)}")
+            result.appendLine("${Colors.bold("Parent:")} ${Colors.yellow(commit.parent)}")
         }
         result.appendLine()
         result.appendLine("    ${commit.message}")
@@ -66,12 +65,12 @@ class ShowCommand : Subcommand("show", description = "Show detailed information 
         }
 
         if (filesToShow.isEmpty()) {
-            result.appendLine("${ColorUtils.dim("No files found at this commit")}")
+            result.appendLine("${Colors.dim("No files found at this commit")}")
             return result.toString()
         }
 
         // Show changes for each file
-        result.appendLine("${ColorUtils.bold("Changes:")}")
+        result.appendLine("${Colors.bold("Changes:")}")
         result.appendLine()
 
         var totalAdded = 0
@@ -94,7 +93,7 @@ class ShowCommand : Subcommand("show", description = "Show detailed information 
                 val changes = blockStore.compareBlocks(parentSnapshot, currentSnapshot)
 
                 if (changes.isNotEmpty()) {
-                    result.appendLine("${ColorUtils.filename(filePath)}:")
+                    result.appendLine("${Colors.filename(filePath)}:")
                     
                     val added = changes.count { it.type == BlockChangeType.ADDED }
                     val modified = changes.count { it.type == BlockChangeType.MODIFIED }
@@ -104,9 +103,9 @@ class ShowCommand : Subcommand("show", description = "Show detailed information 
                     totalModified += modified
                     totalDeleted += deleted
 
-                    if (added > 0) result.appendLine("  ${ColorUtils.success("+")} $added ${if (added == 1) "block" else "blocks"} added")
-                    if (modified > 0) result.appendLine("  ${ColorUtils.warning("~")} $modified ${if (modified == 1) "block" else "blocks"} modified")
-                    if (deleted > 0) result.appendLine("  ${ColorUtils.error("-")} $deleted ${if (deleted == 1) "block" else "blocks"} deleted")
+                    if (added > 0) result.appendLine("  ${Colors.boldGreen("+")} $added ${if (added == 1) "block" else "blocks"} added")
+                    if (modified > 0) result.appendLine("  ${Colors.warn("~")} $modified ${if (modified == 1) "block" else "blocks"} modified")
+                    if (deleted > 0) result.appendLine("  ${Colors.error("-")} $deleted ${if (deleted == 1) "block" else "blocks"} deleted")
                     
                     result.appendLine()
 
@@ -117,13 +116,13 @@ class ShowCommand : Subcommand("show", description = "Show detailed information 
 
                         when (change.type) {
                             BlockChangeType.ADDED -> {
-                                result.appendLine("    ${ColorUtils.success("+")} ${ColorUtils.heading(headingText)} ${ColorUtils.dim("[$blockId]")}")
+                                result.appendLine("    ${Colors.boldGreen("+")} ${Colors.heading(headingText)} ${Colors.dim("[$blockId]")}")
                             }
                             BlockChangeType.DELETED -> {
-                                result.appendLine("    ${ColorUtils.error("-")} ${ColorUtils.heading(headingText)} ${ColorUtils.dim("[$blockId]")}")
+                                result.appendLine("    ${Colors.error("-")} ${Colors.heading(headingText)} ${Colors.dim("[$blockId]")}")
                             }
                             BlockChangeType.MODIFIED -> {
-                                result.appendLine("    ${ColorUtils.warning("~")} ${ColorUtils.heading(headingText)} ${ColorUtils.dim("[$blockId]")}")
+                                result.appendLine("    ${Colors.warn("~")} ${Colors.heading(headingText)} ${Colors.dim("[$blockId]")}")
                             }
                         }
                     }
@@ -134,8 +133,8 @@ class ShowCommand : Subcommand("show", description = "Show detailed information 
 
         // Summary
         if (totalAdded + totalModified + totalDeleted > 0) {
-            result.appendLine("${ColorUtils.bold("Summary:")}")
-            result.appendLine("  ${ColorUtils.success("+")} $totalAdded added, ${ColorUtils.warning("~")} $totalModified modified, ${ColorUtils.error("-")} $totalDeleted deleted")
+            result.appendLine("${Colors.bold("Summary:")}")
+            result.appendLine("  ${Colors.boldGreen("+")} $totalAdded added, ${Colors.warn("~")} $totalModified modified, ${Colors.error("-")} $totalDeleted deleted")
         }
 
         return result.toString()
@@ -190,7 +189,7 @@ class ShowCommand : Subcommand("show", description = "Show detailed information 
         val blockStore = BlockStore(objectStore, repo.path.resolve("${Repository.NOTEVC_DIR}/blocks"))
 
         val commit = findCommit(repo, options.commitHash)
-            ?: throw Exception("Commit ${ColorUtils.hash(options.commitHash)} not found")
+            ?: throw Exception("Commit ${Colors.yellow(options.commitHash)} not found")
 
         val commitTime = Instant.parse(commit.timestamp)
         
@@ -202,7 +201,7 @@ class ShowCommand : Subcommand("show", description = "Show detailed information 
             ?: throw Exception("No snapshot found for ${options.targetFile} at commit ${options.commitHash}")
 
         val block = snapshot.blocks.find { it.id.startsWith(options.blockHash!!) }
-            ?: throw Exception("Block ${ColorUtils.hash(options.blockHash!!)} not found")
+            ?: throw Exception("Block ${Colors.yellow(options.blockHash!!)} not found")
 
         val content = objectStore.getContent(block.contentHash)
             ?: throw Exception("Content not found for block")
@@ -210,12 +209,12 @@ class ShowCommand : Subcommand("show", description = "Show detailed information 
         val headingText = block.heading.replace(Regex("^#+\\s*"), "").trim()
         val result = StringBuilder()
 
-        result.appendLine("${ColorUtils.bold("Block:")} ${ColorUtils.hash(block.id.take(8))}")
-        result.appendLine("${ColorUtils.bold("Heading:")} ${ColorUtils.heading(headingText)}")
-        result.appendLine("${ColorUtils.bold("File:")} ${ColorUtils.filename(options.targetFile)}")
-        result.appendLine("${ColorUtils.bold("Commit:")} ${ColorUtils.hash(commit.hash)}")
+        result.appendLine("${Colors.bold("Block:")} ${Colors.yellow(block.id.take(8))}")
+        result.appendLine("${Colors.bold("Heading:")} ${Colors.heading(headingText)}")
+        result.appendLine("${Colors.bold("File:")} ${Colors.filename(options.targetFile)}")
+        result.appendLine("${Colors.bold("Commit:")} ${Colors.yellow(commit.hash)}")
         result.appendLine()
-        result.appendLine("${ColorUtils.dim("─".repeat(70))}")
+        result.appendLine("${Colors.dim("─".repeat(70))}")
         result.appendLine()
         result.append(content)
 
@@ -228,7 +227,7 @@ class ShowCommand : Subcommand("show", description = "Show detailed information 
         val blockParser = BlockParser()
 
         val commit = findCommit(repo, options.commitHash)
-            ?: throw Exception("Commit ${ColorUtils.hash(options.commitHash)} not found")
+            ?: throw Exception("Commit ${Colors.yellow(options.commitHash)} not found")
 
         val commitTime = Instant.parse(commit.timestamp)
 
@@ -261,11 +260,11 @@ class ShowCommand : Subcommand("show", description = "Show detailed information 
         val reconstructedContent = blockParser.reconstructFile(parsedFile)
 
         val result = StringBuilder()
-        result.appendLine("${ColorUtils.bold("File:")} ${ColorUtils.filename(options.targetFile)}")
-        result.appendLine("${ColorUtils.bold("Commit:")} ${ColorUtils.hash(commit.hash)}")
-        result.appendLine("${ColorUtils.bold("Blocks:")} ${blocks.size}")
+        result.appendLine("${Colors.bold("File:")} ${Colors.filename(options.targetFile)}")
+        result.appendLine("${Colors.bold("Commit:")} ${Colors.yellow(commit.hash)}")
+        result.appendLine("${Colors.bold("Blocks:")} ${blocks.size}")
         result.appendLine()
-        result.appendLine("${ColorUtils.dim("─".repeat(70))}")
+        result.appendLine("${Colors.dim("─".repeat(70))}")
         result.appendLine()
         result.append(reconstructedContent)
 

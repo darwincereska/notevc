@@ -4,7 +4,6 @@ import org.notevc.core.*
 import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.time.Instant
-import org.notevc.utils.ColorUtils
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.io.path.*
@@ -27,7 +26,7 @@ class LogCommand : Subcommand("log", description = "Show commit history with det
         }
 
         result.onSuccess { message -> println(message) }
-        result.onFailure { error -> println("${ColorUtils.error("Error:")} ${error.message}") }
+        result.onFailure { error -> println("${Colors.error("Error:")} ${error.message}") }
     }
 
     private fun generateLog(repo: Repository, options: LogOptions): String {
@@ -111,10 +110,10 @@ class LogCommand : Subcommand("log", description = "Show commit history with det
         return commits.joinToString("\n") { commit ->
             val fileInfo = if (options.showFiles) {
                 val stats = getCommitStats(repo, commit, options.targetFile)
-                ColorUtils.dim(" (${stats.filesChanged} files, ${stats.totalBlocks} blocks)")
+                Colors.dim(" (${stats.filesChanged} files, ${stats.totalBlocks} blocks)")
             } else ""
 
-            "${ColorUtils.hash(commit.hash)} ${commit.message}$fileInfo"
+            "${Colors.yellow(commit.hash)} ${commit.message}$fileInfo"
         }
     }
     
@@ -127,22 +126,23 @@ class LogCommand : Subcommand("log", description = "Show commit history with det
             val formattedDate = formatter.format(timestamp)
 
             buildString {
-                appendLine("${ColorUtils.bold("commit")} ${ColorUtils.hash(commit.hash)}")
-                appendLine("${ColorUtils.bold("Author:")} ${ColorUtils.author(commit.author)}")
-                appendLine("${ColorUtils.bold("Date:")} ${ColorUtils.date(formattedDate)}")
+                appendLine("${Colors.bold("commit")} ${Colors.yellow(commit.hash)}")
+                appendLine("${Colors.bold("Author:")} ${Colors.green(commit.author)}")
+                appendLine("${Colors.bold("Date:")} ${Colors.dim(formattedDate)}")
 
                 if (options.showFiles) {
                     val stats = getCommitStats(repo, commit, options.targetFile)
-                    appendLine("${ColorUtils.info("Files changed:")} ${stats.filesChanged}, ${ColorUtils.info("Total blocks:")} ${stats.totalBlocks}")
+                    appendLine("${Colors.info("Files changed:")} ${stats.filesChanged}, ${Colors.info("Total blocks:")} ${stats.totalBlocks}")
 
                     if (stats.fileDetails.isNotEmpty()) {
                         appendLine()
                         stats.fileDetails.forEach { (file, blocks) ->
-                            appendLine("    ${ColorUtils.filename(file)} ${ColorUtils.dim("(${blocks.size} blocks)")}")
+                            appendLine("    ${Colors.filename(file)} ${Colors.dim("(${blocks.size} blocks)")}")
                             blocks.forEach { block ->
                                 val heading = block.heading.replace(Regex("^#+\\s*"), "").trim()
-                                appendLine("      - ${ColorUtils.hash(block.id.take(8))}: ${ColorUtils.heading(heading)}")
+                                appendLine("      - ${Colors.yellow(block.id.take(8))}: ${Colors.magenta(heading)}")
                             }
+                            appendLine()
                         }
                     }
                 }
